@@ -5,9 +5,9 @@ import { FormEvent, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
 type AccountRole = 'werknemer' | 'opdrachtgever';
-const supabase = createClient();
 
 export default function RegisterPage() {
+  const supabase = createClient();
   const [role, setRole] = useState<AccountRole>('werknemer');
   const [name, setName] = useState('');
   const [company, setCompany] = useState('');

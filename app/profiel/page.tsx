@@ -7,9 +7,8 @@ import Footer from '@/components/navigation/Footer';
 import Navbar from '@/components/navigation/Navbar';
 import { createClient } from '@/lib/supabase/client';
 
-const supabase = createClient();
-
 export default function ProfilePage() {
+  const supabase = createClient();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [city, setCity] = useState('');

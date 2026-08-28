@@ -9,9 +9,8 @@ import ApplyModal from '@/components/modals/ApplyModal';
 import { createClient } from '@/lib/supabase/client';
 import type { Shift } from '@/lib/types';
 
-const supabase = createClient();
-
 export default function HomePage() {
+  const supabase = createClient();
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');

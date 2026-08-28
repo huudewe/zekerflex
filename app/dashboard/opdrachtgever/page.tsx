@@ -8,10 +8,10 @@ import Navbar from '@/components/navigation/Navbar';
 import { createClient } from '@/lib/supabase/client';
 import type { Application, Shift } from '@/lib/types';
 
-const supabase = createClient();
 type JoinedApplication = Application & { shifts?: Shift };
 
 export default function OpdrachtgeverDashboard() {
+  const supabase = createClient();
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [applications, setApplications] = useState<JoinedApplication[]>([]);
   const [showCreate, setShowCreate] = useState(false);

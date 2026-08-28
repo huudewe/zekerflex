@@ -5,9 +5,8 @@ import { FormEvent, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 
-const supabase = createClient();
-
 export default function VerifyPage() {
+  const supabase = createClient();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState(searchParams.get('email') ?? '');
   const [code, setCode] = useState('');

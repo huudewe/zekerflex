@@ -9,8 +9,6 @@ import Navbar from '@/components/navigation/Navbar';
 import { createClient } from '@/lib/supabase/client';
 import type { Application } from '@/lib/types';
 
-const supabase = createClient();
-
 type ApplicationWithShift = Application & { shifts?: Application['shifts'] };
 
 type DashboardStat = {
@@ -20,6 +18,7 @@ type DashboardStat = {
 };
 
 export default function WerknemerDashboard() {
+  const supabase = createClient();
   const [applications, setApplications] = useState<ApplicationWithShift[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();

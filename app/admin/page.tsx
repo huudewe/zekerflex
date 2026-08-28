@@ -4,9 +4,8 @@ import { useEffect, useState } from 'react';
 import { createClient } from '../../lib/supabase/client';
 import type { Application, Shift } from '../../lib/types';
 
-const supabase = createClient();
-
 export default function AdminPage() {
+  const [supabase] = useState(() => createClient());
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);

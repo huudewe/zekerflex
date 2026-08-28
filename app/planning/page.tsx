@@ -8,10 +8,10 @@ import Navbar from '@/components/navigation/Navbar';
 import { createClient } from '@/lib/supabase/client';
 import type { Application } from '@/lib/types';
 
-const supabase = createClient();
 type ScheduledApplication = Application & { shifts?: Application['shifts'] };
 
 export default function PlanningPage() {
+  const supabase = createClient();
   const [applications, setApplications] = useState<ScheduledApplication[]>([]);
   const [loading, setLoading] = useState(true);
 
