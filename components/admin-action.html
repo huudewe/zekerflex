@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <link rel="stylesheet" href="zf-atmosphere.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ZekerFlex - Geselecteerde adminactie</title>
+  <style>
+    :root { --ink:#152238; --muted:#64748b; --line:#dbe4ec; --brand:#0f766e; --bg:#eef3f7; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font:14px "Trebuchet MS", "Segoe UI", sans-serif; }
+    main { width:min(780px,100%); margin:auto; padding:28px 20px 70px; }
+    a { color:var(--brand); font-weight:700; text-decoration:none; }
+    .eyebrow { margin:30px 0 6px; color:var(--brand); font-size:12px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
+    .panel { margin-top:20px; padding:24px; border:1px solid var(--line); border-radius:12px; background:#fff; box-shadow:0 16px 40px #15223814; }
+    h1 { margin:0 0 8px; font-size:30px; }
+    h2 { margin:24px 0 8px; font-size:18px; }
+    .muted { color:var(--muted); line-height:1.55; }
+    .choice { display:grid; gap:6px; margin-top:16px; padding:14px 16px; border-left:4px solid var(--brand); background:#eefaf7; }
+    .choice span { color:var(--muted); font-size:12px; text-transform:uppercase; }
+    form { display:grid; gap:14px; }
+    label { display:grid; gap:6px; font-weight:700; }
+    input, select, textarea, button { min-height:40px; border:1px solid var(--line); border-radius:7px; padding:9px 11px; font:inherit; }
+    textarea { min-height:100px; resize:vertical; }
+    button { width:max-content; border-color:var(--brand); background:var(--brand); color:#fff; cursor:pointer; font-weight:700; }
+    button:hover { filter:saturate(1.1); transform:translateY(-1px); }
+    .status { margin:0; padding:12px; border-left:4px solid var(--brand); background:#eefaf7; color:#155e59; }
+      .card-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:14px; }
+      .data-card { display:grid; gap:10px; padding:16px; border:1px solid var(--line); border-radius:10px; background:#f8fbfc; }
+      .data-card h3 { margin:0; font-size:16px; }
+      .data-card dl { display:grid; grid-template-columns:auto 1fr; gap:6px 12px; margin:0; }
+      .data-card dt { color:var(--muted); }
+      .data-card dd { margin:0; font-weight:700; text-align:right; }
+      .data-card button { margin-top:2px; }
+      .field-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+      .check-list { display:grid; gap:8px; padding:12px; border:1px solid var(--line); border-radius:8px; background:#f8fbfc; }
+      .check-list label { display:flex; grid-template-columns:none; align-items:center; gap:8px; font-weight:400; }
+      .check-list input { min-height:0; }
+      @media(max-width:650px) { .module-head, .action-grid, .card-grid, .field-grid { display:grid; grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <main>
+    <a id="backLink" href="admin.html">&larr; Terug naar Admin overzicht</a>
+    <p class="eyebrow">Geselecteerde adminactie</p>
+    <section class="panel">
+      <h1 id="actionTitle">Selectie</h1>
+      <p class="muted">Controleer de gekozen module en voer de actie uit met de demo-instellingen hieronder.</p>
+      <div class="choice"><span>Beheergebied</span><strong id="moduleChoice"></strong></div>
+      <div class="choice"><span>Gekozen optie</span><strong id="actionChoice"></strong></div>
+        <div id="contextPanel"></div>
+        <h2>Actiegegevens</h2>
+        <form id="actionForm">
+          <div class="field-grid">
+            <label>Uitvoeren als<select id="actor"><option>Admin beheerder</option><option>Compliance team</option><option>Financieel team</option><option>Support team</option></select></label>
+            <label>Prioriteit<select id="priority"><option>Normaal</option><option>Hoog</option><option>Spoed</option></select></label>
+          </div>
+          <label>Notitie<textarea id="note" placeholder="Voeg een interne notitie toe (optioneel)"></textarea></label>
+          <button type="submit">Actie bevestigen</button>
+        </form>
+      <p id="actionStatus" class="status" role="status" hidden></p>
+    </section>
+  </main>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const moduleName = params.get('module');
+    const actionName = params.get('action');
+    const contextPanel = document.getElementById('contextPanel');
+    const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[char]));
+    if (!moduleName || !actionName) {
+      document.getElementById('actionTitle').textContent = 'Geen selectie gevonden';
+      document.getElementById('actionForm').hidden = true;
+      document.getElementById('actionStatus').hidden = false;
+      document.getElementById('actionStatus').textContent = 'Open deze pagina vanuit een beheeroptie in het admin-overzicht.';
+    } else {
+      document.title = `ZekerFlex - ${actionName}`;
+      document.getElementById('actionTitle').textContent = actionName;
+      document.getElementById('moduleChoice').textContent = moduleName;
+      document.getElementById('actionChoice').textContent = actionName;
+      document.getElementById('backLink').href = `admin-module.html?module=${encodeURIComponent(moduleName)}`;
+      const profiles = [{ name: 'Sophie de Vries', type: 'Freelancer', email: 'sophie@demo.nl', phone: '06 12345678', city: 'Breda', skills: 'Horeca, bediening', status: 'In controle' }, { name: 'Bistro de Markt', type: 'Opdrachtgever', email: 'planning@bistromarkt.nl', phone: '076 1234567', city: 'Breda', skills: 'Horeca, events', status: 'Goedgekeurd' }];
+      const shifts = [{ title: 'Barista ochtendshift', company: 'Koffiebar Noord', date: 'Za 12 dec 2025', location: 'Breda', rate: 'EUR 18,50/u', status: 'Open' }, { title: 'Event host avondshift', company: 'Studio Noord', date: 'Zo 13 dec 2025', location: 'Groningen', rate: 'EUR 20,00/u', status: 'Controle nodig' }];
+      if (moduleName === 'Freelancers, opdrachtgevers en profielen' && (actionName.includes('bekijken') || actionName === 'Profielen goedkeuren')) { contextPanel.innerHTML = `<h2>Profielkaarten</h2><div class="card-grid">${profiles.map((profile) => `<article class="data-card"><h3>${esc(profile.name)}</h3><span class="muted">${esc(profile.type)} · ${esc(profile.status)}</span><dl><dt>E-mail</dt><dd>${esc(profile.email)}</dd><dt>Telefoon</dt><dd>${esc(profile.phone)}</dd><dt>Plaats</dt><dd>${esc(profile.city)}</dd><dt>Expertise</dt><dd>${esc(profile.skills)}</dd></dl><button type="button" data-card-action="${esc(profile.name)}">${actionName === 'Profielen goedkeuren' ? 'Profiel goedkeuren' : 'Profiel openen'}</button></article>`).join('')}</div>`; }
+      if (moduleName === 'Klussen aanmaken en modereren' || moduleName === 'Spoedklussen, categorieën en geofencing') { contextPanel.innerHTML = `<h2>Shiftkaarten</h2><div class="card-grid">${shifts.map((shift) => `<article class="data-card"><h3>${esc(shift.title)}</h3><span class="muted">${esc(shift.company)}</span><dl><dt>Datum</dt><dd>${esc(shift.date)}</dd><dt>Plaats</dt><dd>${esc(shift.location)}</dd><dt>Tarief</dt><dd>${esc(shift.rate)}</dd><dt>Status</dt><dd>${esc(shift.status)}</dd></dl><button type="button" data-card-action="${esc(shift.title)}">Shift selecteren</button></article>`).join('')}</div>`; }
+      if (!contextPanel.innerHTML) { contextPanel.innerHTML = `<h2>Modulegegevens</h2><p class="muted">Deze selectie is gekoppeld aan ${esc(moduleName)}. Vul de actiegegevens in om de gekozen bewerking vast te leggen.</p>`; }
+      const actionFields = moduleName === 'Freelancers, opdrachtgevers en profielen' ? [['Profielstatus', 'select', ['Nieuw', 'In controle', 'Goedgekeurd', 'Geblokkeerd']], ['Rol', 'select', ['Freelancer', 'Opdrachtgever', 'Beheerder']], ['Rechtenpakket', 'select', ['Basis', 'Uitgebreid', 'Volledig']], ['Verificatie', 'select', ['Niet gestart', 'In behandeling', 'Geslaagd']]] : actionName.includes('KYC') || actionName.includes('AML') ? [['Documenttype', 'select', ['Identiteitsbewijs', 'Uittreksel KvK', 'UBO-verklaring']], ['Risiconiveau', 'select', ['Laag', 'Middel', 'Hoog']]] : actionName.includes('PSP') || actionName.includes('iDEAL') || actionName.includes('Stripe') || actionName.includes('Adyen') ? [['Providerstatus', 'select', ['Verbonden', 'Testmodus', 'Controle nodig']], ['Laatste controle', 'date']] : actionName.includes('BTW') || actionName.includes('belasting') || actionName.includes('Loonheffing') ? [['Regio', 'select', ['Nederland', 'EU', 'Buiten EU']], ['Controleperiode', 'month']] : actionName.includes('Rol') || actionName.includes('Rechten') || actionName.includes('RBAC') ? [['Rol', 'select', ['Admin', 'Moderator', 'Support', 'Finance']], ['Toegangsniveau', 'select', ['Lezen', 'Bewerken', 'Volledig']]] : actionName.includes('Campagne') || actionName.includes('notificatie') || actionName.includes('bericht') ? [['Kanaal', 'select', ['E-mail', 'Push', 'SMS', 'WhatsApp']], ['Doelgroep', 'text']] : actionName.includes('KPI') || actionName.includes('rapport') || actionName.includes('Omzet') || actionName.includes('GMV') || actionName.includes('Conversie') || actionName.includes('Churn') ? [['Periode', 'select', ['Vandaag', 'Deze week', 'Deze maand', 'Dit jaar']], ['Exportformaat', 'select', ['Dashboard', 'CSV', 'PDF']]] : actionName.includes('Fraude') || actionName.includes('risico') || actionName.includes('identity') || actionName.includes('liveness') ? [['Risicodrempel', 'select', ['Laag', 'Middel', 'Hoog']], ['Review nodig', 'select', ['Ja', 'Nee']]] : [['Status', 'select', ['Nieuw', 'In behandeling', 'Goedgekeurd', 'Afgerond']], ['Referentie', 'text']];
+      contextPanel.insertAdjacentHTML('beforeend', `<div class="field-grid" style="margin-top:14px">${actionFields.map(([label, type, values]) => `<label>${esc(label)}${type === 'select' ? `<select data-context-field="${esc(label)}">${values.map((value) => `<option>${esc(value)}</option>`).join('')}</select>` : `<input type="${esc(type)}" data-context-field="${esc(label)}">`}</label>`).join('')}</div>`);
+      contextPanel.querySelectorAll('[data-card-action]').forEach((button) => button.addEventListener('click', () => { document.getElementById('note').value = `${button.dataset.cardAction} geselecteerd voor ${actionName}.`; document.getElementById('actionStatus').hidden = false; document.getElementById('actionStatus').textContent = `${button.dataset.cardAction} is geselecteerd. Bevestig de actie hieronder.`; }));
+      document.getElementById('actionForm').addEventListener('submit', (event) => {
+        event.preventDefault();
+        const entries = JSON.parse(localStorage.getItem('zf_admin_module_actions') || '[]');
+        const context = Object.fromEntries([...document.querySelectorAll('[data-context-field]')].map((field) => [field.dataset.contextField, field.value]));
+        entries.unshift({ module: moduleName, action: actionName, actor: document.getElementById('actor').value, priority: document.getElementById('priority').value, context, note: document.getElementById('note').value.trim(), timestamp: new Date().toISOString() });
+        localStorage.setItem('zf_admin_module_actions', JSON.stringify(entries.slice(0, 100)));
+        const status = document.getElementById('actionStatus');
+        status.hidden = false;
+        status.textContent = `Actie bevestigd: ${actionName}. De selectie is opgeslagen in de lokale admin-auditlog.`;
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <link rel="stylesheet" href="zf-atmosphere.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZekerFlex - E-mail bevestigd</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="min-h-screen bg-gray-50 text-gray-900 flex items-center justify-center p-4">
+  <main class="w-full max-w-md rounded-3xl border border-gray-100 bg-white p-8 text-center shadow-xl">
+    <div id="loadingState">
+      <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-100 text-2xl">✓</div>
+      <h1 class="mt-5 text-2xl font-black">E-mail controleren...</h1>
+      <p class="mt-2 text-sm text-gray-500">Je wordt automatisch naar jouw dashboard gestuurd.</p>
+    </div>
+    <div id="successState" class="hidden">
+      <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-2xl text-emerald-700">✓</div>
+      <h1 class="mt-5 text-2xl font-black">E-mail bevestigd!</h1>
+      <p id="successMessage" class="mt-2 text-sm text-gray-500">Je account is actief. Even geduld...</p>
+    </div>
+    <div id="errorState" class="hidden">
+      <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-100 text-2xl text-rose-700">!</div>
+      <h1 class="mt-5 text-2xl font-black">Bevestiging mislukt</h1>
+      <p id="errorMessage" class="mt-2 text-sm text-gray-500">De link is ongeldig of verlopen.</p>
+      <a href="login.html" class="mt-6 inline-block rounded-xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white">Terug naar inloggen</a>
+    </div>
+  </main>
+  <script>
+    const supabaseClient = window.supabase.createClient('https://cfkzfdqlcfifrukjdvnj.supabase.co', 'sb_publishable_KoGEquVbS_OIsoTWchG8Qw_Q6vJWJS8');
+    const requestedRole = new URLSearchParams(window.location.search).get('role');
+
+    async function finishEmailConfirmation() {
+      const params = new URLSearchParams(window.location.search);
+      const tokenHash = params.get('token_hash');
+      const code = params.get('code');
+      let error = null;
+
+      try {
+        if (code) {
+          const result = await supabaseClient.auth.exchangeCodeForSession(code);
+          error = result.error;
+        } else if (tokenHash) {
+          const result = await supabaseClient.auth.verifyOtp({ token_hash: tokenHash, type: 'signup' });
+          error = result.error;
+        }
+      } catch (confirmationError) {
+        error = confirmationError;
+      }
+
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (error || !session) {
+        document.getElementById('loadingState').classList.add('hidden');
+        document.getElementById('errorState').classList.remove('hidden');
+        if (error) document.getElementById('errorMessage').textContent = error.message;
+        return;
+      }
+
+      document.getElementById('loadingState').classList.add('hidden');
+      document.getElementById('successState').classList.remove('hidden');
+      const role = session.user.app_metadata?.role || session.user.user_metadata?.role || requestedRole;
+      if (role === 'opdrachtgever') {
+        document.getElementById('successMessage').textContent = 'Welkom bij ZekerFlex! Je account is aangemaakt. Stel nu je account in.';
+      }
+      const isAdmin = session.user.email === 'adminbriando@zekerflex.nl' || role === 'admin';
+      const dashboard = isAdmin || role === 'opdrachtgever' ? 'dashboard.html?view=start' : 'werknemer-dashboard.html';
+      setTimeout(() => { window.location.href = dashboard; }, 900);
+    }
+
+    finishEmailConfirmation();
+  </script>
+</body>
+</html>

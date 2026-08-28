@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZekerFlex - Inloggen</title>
+  <link rel="icon" type="image/svg+xml" href="zekerflex-logo.svg">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans min-h-screen flex items-center justify-center p-4">
+
+  <div class="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl max-w-md w-full">
+    
+    <!-- Logo -->
+    <div class="text-center mb-8">
+      <a href="index.html" class="flex items-center justify-center gap-2 text-3xl font-extrabold tracking-tight"><img src="zekerflex-logo.svg" alt="ZekerFlex logo" class="h-5 w-5 object-contain"><span class="text-indigo-600">Zeker</span><span class="text-gray-900">Flex</span></a>
+      <p class="text-sm text-gray-500 mt-2" id="formTitle">Log in als werknemer</p>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3 mb-6" role="tablist" aria-label="Kies accounttype">
+      <button type="button" id="workerRoleBtn" onclick="selectRole('werknemer')" class="border-2 border-indigo-500 bg-indigo-50 text-indigo-700 rounded-xl p-3 text-left transition">
+        <span class="block text-sm font-bold">Werknemer</span>
+        <span class="block text-xs mt-1">Shifts zoeken</span>
+      </button>
+      <button type="button" id="employerRoleBtn" onclick="selectRole('opdrachtgever')" class="border-2 border-gray-200 bg-white text-gray-600 rounded-xl p-3 text-left transition">
+        <span class="block text-sm font-bold">Bedrijf</span>
+        <span class="block text-xs mt-1">Shifts beheren</span>
+      </button>
+    </div>
+
+    <!-- Inlog / Registratie Formulier -->
+    <form id="authForm" onsubmit="handleAuth(event)" class="space-y-4">
+      <div>
+        <label class="block text-xs font-semibold text-gray-500 uppercase mb-1" for="email">E-mailadres</label>
+        <input type="email" id="email" required placeholder="bedrijf@voorbeeld.nl" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-gray-500 uppercase mb-1" for="password">Wachtwoord</label>
+        <input type="password" id="password" required placeholder="••••••••" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+      </div>
+
+      <div id="confirmPasswordField" class="hidden">
+        <label class="block text-xs font-semibold text-gray-500 uppercase mb-1" for="confirmPassword">Wachtwoord opnieuw</label>
+        <input type="password" id="confirmPassword" placeholder="Herhaal je wachtwoord" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        <p class="mt-1 text-xs text-gray-500">Minimaal 8 tekens, met een hoofdletter en speciaal teken.</p>
+      </div>
+
+      <div id="registrationFields" class="hidden space-y-4 rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4">
+        <p id="registrationIntro" class="text-xs font-bold uppercase tracking-wider text-indigo-700">Gegevens voor je profiel</p>
+        <label class="block text-xs font-semibold uppercase text-gray-500" for="fullName">Volledige naam
+          <input id="fullName" placeholder="Voor- en achternaam" class="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </label>
+        <label id="companyField" class="hidden block text-xs font-semibold uppercase text-gray-500" for="companyName">Bedrijfsnaam
+          <input id="companyName" placeholder="Naam van je bedrijf" class="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+        </label>
+        <label id="kvkField" class="hidden block text-xs font-semibold uppercase text-gray-500" for="kvkNumber">KvK-nummer
+          <input id="kvkNumber" placeholder="12345678" class="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm">
+        </label>
+        <label id="vatField" class="hidden block text-xs font-semibold uppercase text-gray-500" for="vatNumber">Btw-nummer
+          <input id="vatNumber" placeholder="NL123456789B01" class="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm">
+        </label>
+        <label class="block text-xs font-semibold uppercase text-gray-500" for="phoneNumber">Telefoonnummer
+          <input id="phoneNumber" type="tel" placeholder="06 12345678" class="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm">
+        </label>
+        <label class="block text-xs font-semibold uppercase text-gray-500" for="ibanNumber">Bankrekening (IBAN)
+          <input id="ibanNumber" placeholder="NL00 BANK 0000 0000 00" class="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm">
+        </label>
+        <p class="text-xs leading-relaxed text-gray-500">Je bankrekening wordt veilig gecontroleerd. Voor uitbetaling kan een verificatie met een kleine centoverschrijving nodig zijn.</p>
+      </div>
+
+      <label class="flex items-center gap-2 text-sm text-gray-600">
+        <input type="checkbox" id="rememberMe" class="h-4 w-4 rounded border-gray-300 accent-indigo-600">
+        <span>Onthoud mij op dit apparaat</span>
+      </label>
+
+      <button type="submit" id="submitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-xl transition shadow-md text-sm mt-2">
+        Inloggen
+      </button>
+      <a id="forgotPasswordLink" href="wachtwoord-reset.html?role=werknemer" class="block text-center text-sm font-semibold text-indigo-600 hover:text-indigo-800">Wachtwoord vergeten?</a>
+      <div class="grid grid-cols-2 gap-2 pt-2">
+        <a href="werknemer-dashboard.html?demo=werknemer" class="rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-center text-xs font-bold text-indigo-700">Demo werknemer</a>
+        <a href="dashboard.html?demo=bedrijf" class="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-center text-xs font-bold text-emerald-700">Demo bedrijf</a>
+      </div>
+    </form>
+
+    <!-- Switch tussen Inloggen / Registreren -->
+    <div class="text-center mt-6 border-t border-gray-100 pt-4">
+      <button onclick="toggleMode()" id="switchBtn" class="text-xs text-indigo-600 hover:text-indigo-800 font-semibold">
+        Nog geen account? Registreer hier
+      </button>
+      <a href="index.html" class="block mt-4 text-sm font-semibold text-gray-500 hover:text-gray-900 transition">
+        ← Terug naar home
+      </a>
+    </div>
+
+  </div>
+
+  <script src="support-widget.js"></script>
+
+  <script>
+    const SUPABASE_URL = 'https://cfkzfdqlcfifrukjdvnj.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_KoGEquVbS_OIsoTWchG8Qw_Q6vJWJS8';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let isSignUp = false;
+    const requestedRole = new URLSearchParams(window.location.search).get('role');
+    let selectedRole = requestedRole === 'opdrachtgever' ? 'opdrachtgever' : 'werknemer';
+
+    const rememberedRole = localStorage.getItem('zekerflex_role');
+    const rememberedEmail = localStorage.getItem('zekerflex_email');
+    if (!requestedRole && rememberedRole) selectedRole = rememberedRole;
+    if (rememberedEmail) document.getElementById('email').value = rememberedEmail;
+    document.getElementById('rememberMe').checked = Boolean(rememberedEmail);
+
+    function selectRole(role) {
+      selectedRole = role;
+      const roleLabel = role === 'opdrachtgever' ? 'opdrachtgever' : 'werknemer';
+      document.getElementById('formTitle').textContent = isSignUp
+        ? `Maak een ${roleLabel}account aan`
+        : `Log in als ${roleLabel}`;
+      document.getElementById('workerRoleBtn').className = role === 'werknemer'
+        ? 'border-2 border-indigo-500 bg-indigo-50 text-indigo-700 rounded-xl p-3 text-left transition'
+        : 'border-2 border-gray-200 bg-white text-gray-600 rounded-xl p-3 text-left transition';
+      document.getElementById('employerRoleBtn').className = role === 'opdrachtgever'
+        ? 'border-2 border-emerald-500 bg-emerald-50 text-emerald-700 rounded-xl p-3 text-left transition'
+        : 'border-2 border-gray-200 bg-white text-gray-600 rounded-xl p-3 text-left transition';
+      document.getElementById('forgotPasswordLink').href = `wachtwoord-reset.html?role=${role}`;
+      const confirmField = document.getElementById('confirmPasswordField');
+      confirmField.classList.toggle('hidden', !isSignUp);
+      document.getElementById('confirmPassword').required = isSignUp;
+      const registrationFields = document.getElementById('registrationFields');
+      const companyFields = ['companyField', 'kvkField', 'vatField'];
+      registrationFields.classList.toggle('hidden', !isSignUp);
+      companyFields.forEach((id) => document.getElementById(id).classList.toggle('hidden', role !== 'opdrachtgever'));
+      document.getElementById('registrationIntro').textContent = role === 'opdrachtgever' ? 'Bedrijfsgegevens voor verificatie' : 'Persoonlijke gegevens voor je profiel';
+      ['fullName', 'phoneNumber', 'ibanNumber'].forEach((id) => { document.getElementById(id).required = isSignUp; });
+      ['companyName', 'kvkNumber', 'vatNumber'].forEach((id) => { document.getElementById(id).required = isSignUp && role === 'opdrachtgever'; });
+    }
+
+    selectRole(selectedRole);
+
+    async function redirectIfAlreadyLoggedIn() {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) return;
+      const role = session.user.user_metadata?.role || selectedRole;
+      const isAdmin = session.user.email === 'adminbriando@zekerflex.nl' || role === 'admin';
+      window.location.href = isAdmin || role === 'opdrachtgever' ? 'dashboard.html' : 'werknemer-dashboard.html';
+    }
+    redirectIfAlreadyLoggedIn();
+
+    function toggleMode() {
+      isSignUp = !isSignUp;
+      selectRole(selectedRole);
+      document.getElementById('submitBtn').textContent = isSignUp ? 'Account Aanmaken' : 'Inloggen';
+      document.getElementById('switchBtn').textContent = isSignUp ? 'Al een account? Log hier in' : 'Nog geen account? Registreer hier';
+    }
+
+    async function handleAuth(event) {
+      event.preventDefault();
+      const enteredEmail = document.getElementById('email').value.trim().toLowerCase();
+      const email = enteredEmail.includes('@') ? enteredEmail : `${enteredEmail}@zekerflex.nl`;
+      const password = document.getElementById('password').value;
+      const submitBtn = document.getElementById('submitBtn');
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Verwerken...';
+
+      if (isSignUp) {
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        if (password.length < 8 || !/[A-Z]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+          alert('Je wachtwoord moet minimaal 8 tekens bevatten, met minstens één hoofdletter en één speciaal teken.');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Account Aanmaken';
+          return;
+        }
+        if (password !== confirmPassword) {
+          alert('De wachtwoorden zijn niet hetzelfde.');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Account Aanmaken';
+          return;
+        }
+        const { data, error } = await supabaseClient.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              role: selectedRole,
+              display_name: document.getElementById('fullName').value,
+              phone: document.getElementById('phoneNumber').value,
+              iban: document.getElementById('ibanNumber').value,
+              company_name: document.getElementById('companyName').value,
+              kvk_number: document.getElementById('kvkNumber').value,
+              vat_number: document.getElementById('vatNumber').value,
+              verification_status: 'in behandeling',
+              id_verification_status: 'in behandeling',
+              bank_verification_status: 'in behandeling',
+              vat_verification_status: selectedRole === 'opdrachtgever' ? 'in behandeling' : 'niet van toepassing'
+            },
+            emailRedirectTo: `${window.location.origin}/email-bevestigd.html?role=${selectedRole}`
+          }
+        });
+        if (error) {
+          alert('Registratie fout: ' + error.message);
+        } else {
+          if (data.session) {
+            const isAdmin = email === 'adminbriando@zekerflex.nl';
+            window.location.href = isAdmin || selectedRole === 'opdrachtgever' ? 'dashboard.html' : 'werknemer-dashboard.html';
+          } else {
+            alert('Account aangemaakt. Open de link in je e-mail. Daarna word je automatisch ingelogd en naar je dashboard gestuurd.');
+          }
+        }
+      } else {
+        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) {
+          alert('Inlog fout: ' + error.message);
+        } else {
+          if (document.getElementById('rememberMe').checked) {
+            localStorage.setItem('zekerflex_email', email);
+            localStorage.setItem('zekerflex_role', selectedRole);
+          } else {
+            localStorage.removeItem('zekerflex_email');
+            localStorage.removeItem('zekerflex_role');
+          }
+          const isAdmin = email === 'adminbriando@zekerflex.nl';
+          window.location.href = isAdmin || selectedRole === 'opdrachtgever' ? 'dashboard.html' : 'werknemer-dashboard.html';
+        }
+      }
+
+      submitBtn.disabled = false;
+      submitBtn.textContent = isSignUp ? 'Account Aanmaken' : 'Inloggen';
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZekerFlex - Wachtwoord herstellen</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans min-h-screen flex items-center justify-center p-4">
+  <main class="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl max-w-md w-full">
+    <a href="index.html" class="text-3xl font-extrabold text-indigo-600 tracking-tight">Zeker<span class="text-gray-900">Flex</span></a>
+    <h1 class="text-2xl font-black text-gray-900 mt-8">Wachtwoord herstellen</h1>
+    <p id="intro" class="text-sm text-gray-500 mt-2">Vul je e-mailadres in. We sturen je een herstelmail.</p>
+
+    <form id="resetRequestForm" class="space-y-4 mt-6">
+      <label class="block text-xs font-bold uppercase text-gray-500" for="resetEmail">E-mailadres
+        <input id="resetEmail" type="email" required placeholder="jij@voorbeeld.nl" class="mt-1.5 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+      </label>
+      <button id="requestButton" class="w-full rounded-xl bg-indigo-600 py-3 font-bold text-white hover:bg-indigo-700">Stuur herstelmail</button>
+    </form>
+
+    <form id="newPasswordForm" class="hidden space-y-4 mt-6">
+      <label class="block text-xs font-bold uppercase text-gray-500" for="newPassword">Nieuw wachtwoord
+        <input id="newPassword" type="password" minlength="8" required placeholder="Minimaal 8 tekens, hoofdletter en speciaal teken" class="mt-1.5 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+      </label>
+      <label class="block text-xs font-bold uppercase text-gray-500" for="confirmNewPassword">Wachtwoord opnieuw
+        <input id="confirmNewPassword" type="password" minlength="8" required placeholder="Herhaal je nieuwe wachtwoord" class="mt-1.5 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+      </label>
+      <button class="w-full rounded-xl bg-emerald-600 py-3 font-bold text-white hover:bg-emerald-700">Nieuw wachtwoord opslaan</button>
+    </form>
+    <p id="resetMessage" class="hidden mt-4 rounded-xl p-3 text-sm"></p>
+    <a href="login.html" class="block text-center mt-6 text-sm font-semibold text-gray-500 hover:text-gray-900">← Terug naar inloggen</a>
+  </main>
+
+  <script>
+    const supabaseClient = window.supabase.createClient('https://cfkzfdqlcfifrukjdvnj.supabase.co', 'sb_publishable_KoGEquVbS_OIsoTWchG8Qw_Q6vJWJS8');
+    const role = new URLSearchParams(window.location.search).get('role') === 'opdrachtgever' ? 'opdrachtgever' : 'werknemer';
+    const message = document.getElementById('resetMessage');
+
+    function showMessage(text, success) {
+      message.textContent = text;
+      message.className = `mt-4 rounded-xl p-3 text-sm ${success ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`;
+    }
+
+    document.getElementById('resetRequestForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const email = document.getElementById('resetEmail').value.trim();
+      const button = document.getElementById('requestButton');
+      button.disabled = true;
+      button.textContent = 'Verzenden...';
+      const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/wachtwoord-reset.html?role=${role}` });
+      if (error) showMessage(error.message, false);
+      else showMessage('Herstelmail verstuurd. Controleer je inbox en spamfolder.', true);
+      button.disabled = false;
+      button.textContent = 'Stuur herstelmail';
+    });
+
+    supabaseClient.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        document.getElementById('resetRequestForm').classList.add('hidden');
+        document.getElementById('newPasswordForm').classList.remove('hidden');
+        document.getElementById('intro').textContent = 'Kies een nieuw wachtwoord voor je ZekerFlex-account.';
+      }
+    });
+
+    document.getElementById('newPasswordForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const password = document.getElementById('newPassword').value;
+      const confirmation = document.getElementById('confirmNewPassword').value;
+      if (password.length < 8 || !/[A-Z]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+        showMessage('Gebruik minimaal 8 tekens, met een hoofdletter en speciaal teken.', false);
+        return;
+      }
+      if (password !== confirmation) {
+        showMessage('De wachtwoorden zijn niet hetzelfde.', false);
+        return;
+      }
+      const { error } = await supabaseClient.auth.updateUser({ password });
+      if (error) { showMessage(error.message, false); return; }
+      showMessage('Je wachtwoord is gewijzigd. Je wordt doorgestuurd naar je dashboard.', true);
+      setTimeout(() => { window.location.href = role === 'opdrachtgever' ? 'dashboard.html' : 'werknemer-dashboard.html'; }, 1200);
+    });
+  </script>
+</body>
+</html>

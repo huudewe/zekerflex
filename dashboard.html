@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZekerFlex - Dashboard Sollicitaties</title>
+  <link rel="icon" type="image/svg+xml" href="zekerflex-logo.svg">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans antialiased min-h-screen flex flex-col justify-between">
+
+  <!-- Navigatiebalk -->
+  <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Logo -->
+      <div class="flex items-center gap-3"><button type="button" onclick="toggleCompanySidebar()" class="rounded-xl bg-gray-100 p-2.5 text-gray-600 transition hover:bg-indigo-50 hover:text-indigo-600" title="Sidebar openen/sluiten" aria-label="Sidebar openen/sluiten">☰</button><a href="index.html" class="flex items-center gap-2 text-2xl font-extrabold tracking-tight"><img src="zekerflex-logo.svg" alt="ZekerFlex logo" class="h-5 w-5 object-contain"><span class="text-indigo-600">Zeker</span><span class="text-gray-900">Flex</span></a></div>
+      
+      <!-- Desktop Navigatie -->
+      <nav class="hidden lg:flex items-center space-x-6 text-sm font-medium text-gray-600">
+        <a href="index.html" class="hover:text-gray-900 transition">Shifts zoeken</a>
+        <a href="dashboard.html" class="text-indigo-600 font-semibold">Dashboard</a>
+      </nav>
+
+      <!-- Desktop Actieknoppen -->
+      <div class="hidden lg:flex items-center space-x-3">
+        <a href="plaats-shift.html" class="text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 px-4 py-2.5 rounded-xl transition shadow-sm">
+          + Nieuwe Shift
+        </a>
+        <button onclick="handleLogout()" class="text-sm font-medium text-gray-600 hover:text-red-600 bg-gray-100 hover:bg-red-50 px-4 py-2.5 rounded-xl transition">
+          Uitloggen 🚪
+        </button>
+      </div>
+
+      <!-- Snelle acties -->
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="document.getElementById('crmShifts').scrollIntoView({ behavior: 'smooth' })" class="rounded-xl bg-gray-100 p-2.5 text-gray-600 transition hover:bg-indigo-50 hover:text-indigo-600" title="Zoeken" aria-label="Zoeken">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" stroke-width="1.8"></circle><path stroke-linecap="round" stroke-width="1.8" d="m20 20-4-4"></path></svg>
+        </button>
+        <button type="button" onclick="toggleCompanyNotificationPopup()" class="relative rounded-xl bg-gray-100 p-2.5 text-gray-600 transition hover:bg-amber-50 hover:text-amber-600" title="Meldingen" aria-label="Meldingen">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 17H9m9-2V11a6 6 0 0 0-12 0v4l-2 2h16l-2-2Zm-5 5h-2"></path></svg>
+          <span id="companyNotificationBadge" class="absolute -right-1 -top-1 hidden rounded-full bg-rose-500 px-1.5 py-0.5 text-[10px] font-bold text-white">0</span>
+        </button>
+      </div>
+
+    </div>
+
+    <div id="companyNotificationPopup" class="fixed right-4 top-20 z-50 hidden w-[min(360px,calc(100vw-2rem))] rounded-2xl border border-gray-200 bg-white p-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-gray-100 pb-3"><h2 class="text-sm font-bold text-gray-900">Nieuwe meldingen</h2><button onclick="toggleCompanyNotificationPopup()" class="text-lg text-gray-400">×</button></div>
+      <div id="companyNotificationPopupList" class="mt-3 space-y-2"></div>
+      <button onclick="document.getElementById('crmNotifications').scrollIntoView({ behavior: 'smooth' }); toggleCompanyNotificationPopup();" class="mt-3 w-full rounded-xl bg-gray-100 py-2 text-xs font-bold text-gray-700">Alle meldingen bekijken</button>
+    </div>
+
+  </header>
+
+  <!-- Hoofdinhoud -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow w-full">
+    <div class="mb-8 grid gap-6 lg:grid-cols-[240px_1fr]">
+      <aside id="companySidebar" class="rounded-3xl bg-white border border-gray-100 p-4 shadow-sm transition-all lg:sticky lg:top-24 lg:min-h-[calc(100vh-7rem)]">
+        <div class="rounded-2xl bg-emerald-950 p-4 text-white"><div class="flex items-start justify-between"><div><p class="text-xs font-bold uppercase tracking-wider text-emerald-300">Werkgeversportaal</p><h2 class="mt-1 text-lg font-black">Bedrijf CRM</h2></div><button type="button" onclick="toggleCompanySidebarCollapse()" class="rounded-lg bg-white/10 px-2 py-1 text-xs text-emerald-100 hover:bg-white/20" title="Sidebar inklappen">«</button></div><p id="companyUserLabel" class="mt-2 truncate text-xs text-emerald-100">Je organisatie</p></div>
+        <div id="companyAccountCard" class="mt-4 rounded-2xl border border-indigo-100 bg-indigo-50 p-4"><p class="text-xs font-bold uppercase tracking-wider text-indigo-600">Persoonlijk & account</p><p class="mt-1 text-sm font-black text-gray-900">Werkgever / manager</p><p id="companyAccountEmail" class="mt-1 truncate text-xs text-gray-500">Accountgegevens</p><button onclick="focusCompanyProfile()" class="mt-3 text-xs font-bold text-indigo-700">Account beheren →</button></div>
+        <nav class="mt-5 space-y-1 text-sm font-semibold"><a href="#crmOverview" class="block rounded-xl bg-emerald-50 px-3 py-3 text-emerald-700">▦ Overzicht</a><a href="#crmShifts" class="block rounded-xl px-3 py-3 text-gray-600 hover:bg-gray-50">▤ Mijn shifts</a><a href="#crmCandidates" class="block rounded-xl px-3 py-3 text-gray-600 hover:bg-gray-50">♙ Kandidaten</a><a href="#crmPlanning" class="block rounded-xl px-3 py-3 text-gray-600 hover:bg-gray-50">□ Planning</a><a href="#crmInbox" class="block rounded-xl px-3 py-3 text-gray-600 hover:bg-gray-50">✉ Inbox & support</a><a href="#crmCompany" class="block rounded-xl px-3 py-3 text-gray-600 hover:bg-gray-50">◯ Bedrijfsprofiel</a><a href="#crmAdmin" class="block rounded-xl px-3 py-3 text-gray-600 hover:bg-gray-50">€ Facturatie</a></nav>
+        <div class="mt-6 rounded-2xl bg-gray-50 p-4 text-xs"><span class="font-bold text-gray-700">Accountstatus</span><p class="mt-2 text-emerald-600">● Geverifieerd bedrijf</p><p class="mt-1 text-gray-500">Veilige omgeving actief</p></div>
+      </aside>
+      <div class="min-w-0">
+        <section id="crmOverview" class="mb-6 rounded-3xl bg-gradient-to-r from-emerald-950 to-teal-800 p-7 text-white shadow-lg"><p class="text-xs font-bold uppercase tracking-wider text-emerald-300">Goedemorgen</p><h1 class="mt-2 text-3xl font-black">Je team in één overzicht</h1><p class="mt-2 max-w-2xl text-sm text-emerald-100">Beheer shifts, kandidaten en communicatie vanuit één rustige werkplek.</p><div class="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4"><div class="rounded-2xl bg-white/10 p-4"><span class="block text-xs text-emerald-200">Open shifts</span><strong id="crmOpenShifts" class="mt-1 block text-2xl">0</strong></div><div class="rounded-2xl bg-white/10 p-4"><span class="block text-xs text-emerald-200">Nieuwe reacties</span><strong id="crmNewCandidates" class="mt-1 block text-2xl">0</strong></div><div class="rounded-2xl bg-white/10 p-4"><span class="block text-xs text-emerald-200">Aangenomen</span><strong id="crmAccepted" class="mt-1 block text-2xl">0</strong></div><div class="rounded-2xl bg-white/10 p-4"><span class="block text-xs text-emerald-200">Support</span><strong class="mt-1 block text-2xl">Online</strong></div></div></section>
+
+    <!-- Koptekst & Statistieken -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <div>
+        <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Opdrachtgever Dashboard</h1>
+        <p class="text-gray-500 mt-1">Beheer sollicitaties en verander de status van kandidaten.</p>
+      </div>
+
+      <div class="flex gap-3">
+        <div class="bg-white px-5 py-3 rounded-2xl border border-gray-100 shadow-sm text-center">
+          <span class="block text-xs font-semibold text-gray-400 uppercase">Totaal Reacties</span>
+          <span id="statApplications" class="text-xl font-extrabold text-indigo-600">0</span>
+        </div>
+        <div class="bg-white px-5 py-3 rounded-2xl border border-gray-100 shadow-sm text-center">
+          <span class="block text-xs font-semibold text-gray-400 uppercase">Aangenomen</span>
+          <span id="statAccepted" class="text-xl font-extrabold text-emerald-600">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sollicitaties Lijst Container -->
+    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+      <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h2 class="text-lg font-bold text-gray-900">Binnengekomen Sollicitaties</h2>
+        <div class="flex items-center gap-2">
+          <label for="statusFilter" class="text-xs font-semibold text-gray-500 uppercase">Filter Status:</label>
+          <select id="statusFilter" onchange="renderApplications()" class="bg-gray-50 border border-gray-200 text-xs rounded-xl px-3 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="alle">Alle statussen</option>
+            <option value="In behandeling">In behandeling</option>
+            <option value="Aangenomen">Aangenomen</option>
+            <option value="Afgewezen">Afgewezen</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Inhoud / Kaarten -->
+      <div id="applicationsContainer" class="p-6 space-y-4">
+        <p class="text-gray-500 text-center py-8">Sollicitaties laden uit Supabase...</p>
+      </div>
+    </div>
+
+  </main>
+
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <div class="grid gap-5 md:grid-cols-2">
+      <article id="crmShifts" class="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm"><div class="flex items-center justify-between"><div><p class="text-xs font-bold uppercase text-emerald-600">Werkplanning</p><h2 class="mt-1 text-xl font-black">Mijn shifts</h2></div><a href="plaats-shift.html" class="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white">+ Nieuwe shift</a></div><p class="mt-3 text-sm text-gray-500">Bekijk, publiceer en beheer je openstaande opdrachten.</p></article>
+      <article id="crmCandidates" class="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm"><p class="text-xs font-bold uppercase text-indigo-600">Talent</p><h2 class="mt-1 text-xl font-black">Kandidatenpipeline</h2><p class="mt-3 text-sm text-gray-500">Nieuwe reacties, selectie en aangenomen kandidaten staan hieronder bij elkaar.</p><a href="#applicationsContainer" class="mt-4 inline-block text-sm font-bold text-indigo-600">Kandidaten bekijken →</a></article>
+      <article id="crmPlanning" class="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm"><p class="text-xs font-bold uppercase text-amber-600">Planning</p><h2 class="mt-1 text-xl font-black">Teamplanning</h2><div class="mt-4 rounded-2xl bg-amber-50 p-4 text-sm text-amber-800"><strong>Vandaag</strong><p class="mt-1">Plan bezetting en houd piekmomenten in beeld.</p></div><button onclick="addCompanyTask()" class="mt-4 rounded-xl bg-gray-900 px-4 py-2 text-xs font-bold text-white">+ Taak toevoegen</button><div id="companyTasks" class="mt-3 space-y-2"></div></article>
+      <article id="crmInbox" class="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm"><p class="text-xs font-bold uppercase text-cyan-600">Communicatie</p><h2 class="mt-1 text-xl font-black">Inbox & support</h2><p class="mt-3 text-sm text-gray-500">Beantwoord kandidaten en supporttickets vanuit één centrale inbox.</p><a href="#supportAdminContainer" class="mt-4 inline-block text-sm font-bold text-indigo-600">Inbox openen →</a></article>
+      <article id="crmCompany" class="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm"><p class="text-xs font-bold uppercase text-indigo-600">Organisatie</p><h2 class="mt-1 text-xl font-black">Bedrijfsprofiel</h2><p id="crmCompanyName" class="mt-3 text-sm text-gray-500">Bedrijfsgegevens en contactinformatie beheren.</p><button onclick="editCompanyProfile()" class="mt-4 rounded-xl border border-gray-200 px-4 py-2 text-xs font-bold text-gray-700">Profiel bewerken</button></article>
+      <article id="crmAdmin" class="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm"><p class="text-xs font-bold uppercase text-emerald-600">Financiën</p><h2 class="mt-1 text-xl font-black">Facturatie & administratie</h2><p class="mt-3 text-sm text-gray-500">Houd tarieven, documenten en betaalstatussen bij.</p><span class="mt-4 inline-block rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">Controle actief</span></article>
+      <article class="rounded-3xl border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-cyan-50 p-6 shadow-sm md:col-span-2"><div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"><div><p class="text-xs font-bold uppercase text-emerald-700">Nieuwe softwareomgeving</p><h2 class="mt-1 text-2xl font-black text-slate-900">ZekerFlex OS</h2><p class="mt-2 max-w-xl text-sm text-slate-600">Kassa, HR, voorraad, reserveringen, marketing en boekhouding in één platform.</p></div><a href="zekerflex-os.html" class="rounded-2xl bg-emerald-600 px-5 py-3 text-center text-sm font-bold text-white hover:bg-emerald-700">ZekerFlex OS openen →</a></div><div class="mt-5 flex flex-wrap gap-2 text-xs font-bold text-emerald-800"><span class="rounded-full bg-white/70 px-3 py-1.5">POS</span><span class="rounded-full bg-white/70 px-3 py-1.5">HR & planning</span><span class="rounded-full bg-white/70 px-3 py-1.5">Voorraad</span><span class="rounded-full bg-white/70 px-3 py-1.5">Abonnementen</span><span class="rounded-full bg-white/70 px-3 py-1.5">Roadmap</span></div></article>
+    </div>
+  </section>
+
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <div id="crmNotifications" class="mb-6 bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+      <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between gap-3 sm:items-center"><div><h2 class="text-lg font-bold text-gray-900">Meldingen</h2><p class="text-sm text-gray-500 mt-1">Belangrijke updates over je team en shifts.</p></div><button onclick="clearCompanyNotifications()" class="text-xs font-bold text-gray-500 hover:text-rose-600">Alles wissen</button></div>
+      <div id="companyNotificationsContainer" class="p-6 space-y-3"><p class="text-sm text-gray-500">Meldingen laden...</p></div>
+    </div>
+    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+      <div class="p-6 border-b border-gray-100"><h2 class="text-lg font-bold text-gray-900">Supporttickets & Chat</h2><p class="text-sm text-gray-500 mt-1">Beantwoord vragen van bezoekers rechtstreeks vanuit het dashboard.</p></div>
+      <div id="supportAdminContainer" class="p-6"><p class="text-sm text-gray-500">Supporttickets laden...</p></div>
+    </div>
+  </section>
+
+  <script src="support-widget.js"></script>
+
+  <!-- Footer -->
+
+  <script>
+    // SUPABASE CONFIGURATIE
+    const SUPABASE_URL = 'https://cfkzfdqlcfifrukjdvnj.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_KoGEquVbS_OIsoTWchG8Qw_Q6vJWJS8';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let allApplications = [];
+    let companyNotifications = JSON.parse(localStorage.getItem('zf_company_notifications') || '[]');
+    const companyTasks = JSON.parse(localStorage.getItem('zf_company_tasks') || '[]');
+
+    const applicationsContainer = document.getElementById('applicationsContainer');
+    const statApplications = document.getElementById('statApplications');
+    const statAccepted = document.getElementById('statAccepted');
+    const statusFilter = document.getElementById('statusFilter');
+
+    function renderCompanyTasks() {
+      const container = document.getElementById('companyTasks');
+      if (!container) return;
+      container.innerHTML = companyTasks.map((task, index) => `<div class="flex items-center justify-between rounded-xl bg-gray-50 px-3 py-2 text-xs"><span>${task}</span><button onclick="removeCompanyTask(${index})" class="font-bold text-rose-600">Verwijder</button></div>`).join('');
+    }
+
+    function addCompanyTask() {
+      const task = prompt('Nieuwe CRM-taak:');
+      if (!task?.trim()) return;
+      companyTasks.push(task.trim());
+      localStorage.setItem('zf_company_tasks', JSON.stringify(companyTasks));
+      renderCompanyTasks();
+    }
+
+    function removeCompanyTask(index) {
+      companyTasks.splice(index, 1);
+      localStorage.setItem('zf_company_tasks', JSON.stringify(companyTasks));
+      renderCompanyTasks();
+    }
+
+    function editCompanyProfile() {
+      const name = prompt('Bedrijfsnaam:', localStorage.getItem('zf_company_name') || '');
+      if (!name?.trim()) return;
+      localStorage.setItem('zf_company_name', name.trim());
+      document.getElementById('crmCompanyName').textContent = `${name.trim()} · profiel actief`;
+    }
+
+    function toggleCompanySidebar() {
+      document.getElementById('companySidebar').classList.toggle('hidden');
+    }
+
+    function toggleCompanySidebarCollapse() {
+      document.getElementById('companySidebar').classList.toggle('company-sidebar-collapsed');
+    }
+
+    function focusCompanyProfile() {
+      document.getElementById('crmCompany').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function renderCompanyNotifications() {
+      const container = document.getElementById('companyNotificationsContainer');
+      const badge = document.getElementById('companyNotificationBadge');
+      const unread = companyNotifications.filter(notification => !notification.read).length;
+      badge.textContent = unread;
+      badge.classList.toggle('hidden', unread === 0);
+      container.innerHTML = companyNotifications.length ? companyNotifications.map(notification => `<article class="rounded-2xl border ${notification.read ? 'border-gray-100 bg-gray-50' : 'border-amber-200 bg-amber-50/60'} p-4"><div class="flex items-start justify-between gap-4"><div><span class="text-lg">${notification.icon}</span><h3 class="mt-1 text-sm font-bold text-gray-900">${notification.title}</h3><p class="mt-1 text-xs text-gray-600">${notification.text}</p></div><div class="flex shrink-0 flex-col gap-2"><button onclick="openCompanyNotification(${notification.id})" class="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white">Bekijken</button><button onclick="removeCompanyNotification(${notification.id})" class="text-xs font-bold text-gray-500 hover:text-rose-600">Wissen</button></div></div></article>`).join('') : '<p class="rounded-2xl bg-gray-50 p-6 text-center text-sm text-gray-500">Geen nieuwe meldingen.</p>';
+      renderCompanyNotificationPopup();
+    }
+
+    function renderCompanyNotificationPopup() {
+      const popupList = document.getElementById('companyNotificationPopupList');
+      if (!popupList) return;
+      const unread = companyNotifications.filter(notification => !notification.read).slice(0, 5);
+      popupList.innerHTML = unread.length ? unread.map(notification => `<button onclick="openCompanyNotification(${notification.id})" class="block w-full rounded-xl border border-gray-100 bg-gray-50 p-3 text-left transition hover:border-indigo-200 hover:bg-indigo-50"><span class="text-sm">${notification.icon}</span><strong class="ml-2 text-xs text-gray-900">${notification.title}</strong><p class="mt-1 text-xs text-gray-600">${notification.text}</p><span class="mt-2 block text-[10px] font-bold text-indigo-600">Naar actie →</span></button>`).join('') : '<p class="py-3 text-center text-xs text-gray-500">Geen nieuwe meldingen.</p>';
+    }
+
+    function toggleCompanyNotificationPopup() {
+      const popup = document.getElementById('companyNotificationPopup');
+      popup.classList.toggle('hidden');
+      renderCompanyNotificationPopup();
+    }
+
+    function addCompanyNotification(notification) {
+      if (!companyNotifications.some(item => item.key === notification.key)) companyNotifications.unshift({ id: Date.now(), read: false, ...notification });
+      localStorage.setItem('zf_company_notifications', JSON.stringify(companyNotifications));
+    }
+
+    function openCompanyNotification(id) {
+      const notification = companyNotifications.find(item => item.id === id);
+      if (!notification) return;
+      notification.read = true;
+      localStorage.setItem('zf_company_notifications', JSON.stringify(companyNotifications));
+      renderCompanyNotifications();
+      document.getElementById('companyNotificationPopup').classList.add('hidden');
+      document.getElementById(notification.target || 'applicationsContainer').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function removeCompanyNotification(id) {
+      companyNotifications = companyNotifications.filter(item => item.id !== id);
+      localStorage.setItem('zf_company_notifications', JSON.stringify(companyNotifications));
+      renderCompanyNotifications();
+    }
+
+    function clearCompanyNotifications() {
+      companyNotifications = [];
+      localStorage.setItem('zf_company_notifications', JSON.stringify(companyNotifications));
+      renderCompanyNotifications();
+    }
+
+    const demoCompanyMode = new URLSearchParams(window.location.search).get('demo') === 'bedrijf';
+    const demoCompanyApplications = [
+      { id: 'demo-1', applicant_name: 'Sophie de Vries', applicant_email: 'sophie@example.nl', applicant_phone: '06 12345678', motivation: 'Ik heb drie jaar horeca-ervaring en ben direct beschikbaar.', status: 'In behandeling', created_at: new Date().toISOString(), shift_id: 'demo-shift-1', shifts: { title: 'Barcrew avond', company: 'Demo Horeca BV', date_display: 'Vandaag | 17:00 - 23:00' } },
+      { id: 'demo-2', applicant_name: 'Daan Jansen', applicant_email: 'daan@example.nl', applicant_phone: '06 87654321', motivation: 'Ervaren teamspeler met logistieke ervaring.', status: 'Aangenomen', created_at: new Date(Date.now() - 86400000).toISOString(), shift_id: 'demo-shift-2', shifts: { title: 'Orderpicker', company: 'Demo Horeca BV', date_display: 'Morgen | 09:00 - 17:00' } }
+    ];
+
+    async function checkAuthAndLoad() {
+      if (demoCompanyMode) {
+        document.getElementById('companyUserLabel').textContent = 'Demo bedrijf · alleen bekijken';
+        document.getElementById('crmCompanyName').textContent = 'Demo Horeca BV · voorbeeldprofiel';
+        renderCompanyTasks();
+        allApplications = demoCompanyApplications;
+        statApplications.textContent = allApplications.length;
+        statAccepted.textContent = allApplications.filter(app => app.status === 'Aangenomen').length;
+        document.getElementById('crmOpenShifts').textContent = '3';
+        document.getElementById('crmNewCandidates').textContent = '1';
+        document.getElementById('crmAccepted').textContent = '1';
+        addCompanyNotification({ key: 'demo-application', icon: '👤', title: 'Nieuwe sollicitatie', text: 'Sophie de Vries heeft gereageerd op Barcrew avond.', target: 'applicationsContainer' });
+        addCompanyNotification({ key: 'demo-hours', icon: '⏱️', title: 'Uren goedkeuring', text: 'Controleer de uren van je team voor de uitbetaling.', target: 'crmAdmin' });
+        renderCompanyNotifications();
+        renderApplications();
+        return;
+      }
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) {
+        alert('Je moet ingelogd zijn om het dashboard te bekijken.');
+        window.location.href = 'login.html';
+        return;
+      }
+      const role = session.user.app_metadata?.role || session.user.user_metadata?.role;
+      const isAdmin = role === 'admin' || session.user.email === 'adminbriando@zekerflex.nl';
+      if (!isAdmin && role !== 'opdrachtgever') {
+        alert('Dit dashboard is alleen voor opdrachtgevers.');
+        window.location.href = 'index.html';
+        return;
+      }
+      document.getElementById('companyUserLabel').textContent = session.user.email || 'Je organisatie';
+      document.getElementById('companyAccountEmail').textContent = session.user.email || 'Accountgegevens';
+      document.getElementById('crmCompanyName').textContent = localStorage.getItem('zf_company_name') || 'Bedrijfsgegevens en contactinformatie beheren.';
+      renderCompanyTasks();
+      fetchDashboardData(session.user.id);
+    }
+
+    async function handleLogout() {
+      if (demoCompanyMode) { window.location.href = 'login.html?role=opdrachtgever'; return; }
+      await supabaseClient.auth.signOut();
+      window.location.href = 'login.html';
+    }
+
+    async function fetchDashboardData(currentUserId) {
+      applicationsContainer.innerHTML = '<p class="text-gray-500 text-center py-8">Sollicitaties laden uit Supabase...</p>';
+
+      const { data: ownShifts } = await supabaseClient
+        .from('shifts')
+        .select('id, status')
+        .eq('user_id', currentUserId);
+
+      const { data: apps, error } = await supabaseClient
+        .from('applications')
+        .select('*, shifts!inner(title, company, location, rate, date_display, user_id)')
+        .eq('shifts.user_id', currentUserId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Fout bij ophalen sollicitaties:', error);
+        applicationsContainer.innerHTML = '<p class="text-red-500 text-center py-8">Kon sollicitaties niet laden.</p>';
+        return;
+      }
+
+      allApplications = apps;
+      statApplications.textContent = allApplications.length;
+      statAccepted.textContent = allApplications.filter(app => app.status === 'Aangenomen').length;
+      document.getElementById('crmOpenShifts').textContent = ownShifts?.filter(shift => shift.status === 'open').length || 0;
+      document.getElementById('crmNewCandidates').textContent = allApplications.filter(app => !app.status || app.status === 'In behandeling').length;
+      document.getElementById('crmAccepted').textContent = allApplications.filter(app => app.status === 'Aangenomen').length;
+      allApplications.forEach(app => {
+        addCompanyNotification({
+          key: `application-${app.id}`,
+          icon: '👤',
+          title: app.status === 'Aangenomen' ? 'Kandidaat aangenomen' : 'Nieuwe sollicitatie',
+          text: `${app.applicant_name} heeft gereageerd op ${app.shifts?.title || 'een shift'}.`,
+          target: 'applicationsContainer'
+        });
+      });
+      addCompanyNotification({ key: 'hours-review', icon: '⏱️', title: 'Uren goedkeuring', text: 'Controleer openstaande uren voordat de uitbetaling wordt verwerkt.', target: 'crmAdmin' });
+      renderCompanyNotifications();
+      renderApplications();
+    }
+
+    function renderApplications() {
+      const filterValue = statusFilter.value;
+      const filteredApps = allApplications.filter(app => filterValue === 'alle' || app.status === filterValue);
+
+      if (filteredApps.length === 0) {
+        applicationsContainer.innerHTML = `
+          <div class="text-center py-12">
+            <span class="text-4xl block mb-2">📥</span>
+            <h3 class="text-base font-bold text-gray-800">Geen sollicitaties gevonden</h3>
+            <p class="text-sm text-gray-500 mt-1">Er zijn momenteel geen sollicitaties met deze filter-instelling.</p>
+          </div>
+        `;
+        return;
+      }
+
+      applicationsContainer.innerHTML = '';
+      filteredApps.forEach(app => {
+        const dateObj = new Date(app.created_at);
+        const submittedDate = dateObj.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+        const shiftTitle = app.shifts ? app.shifts.title : 'Onbekende shift';
+        const companyName = app.shifts ? app.shifts.company : 'Onbekend bedrijf';
+        const shiftDate = app.shifts ? app.shifts.date_display : '';
+
+        let statusBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+        if (app.status === 'Aangenomen') statusBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        if (app.status === 'Afgewezen') statusBadgeClass = 'bg-rose-50 text-rose-700 border-rose-200';
+
+        const cardHtml = `
+          <div class="bg-gray-50 rounded-2xl p-5 border border-gray-100 hover:border-indigo-100 transition flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="space-y-2 flex-grow">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="bg-indigo-100 text-indigo-700 text-xs font-bold px-2.5 py-1 rounded-lg">
+                  ${shiftTitle} (${companyName})
+                </span>
+                <span class="border text-xs font-bold px-2.5 py-0.5 rounded-full ${statusBadgeClass}">
+                  ${app.status || 'In behandeling'}
+                </span>
+                <span class="text-xs text-gray-400">📅 Shift op ${shiftDate}</span>
+              </div>
+
+              <div>
+                <h3 class="text-lg font-bold text-gray-900">${app.applicant_name}</h3>
+                <div class="flex flex-wrap items-center gap-4 text-xs font-medium text-gray-600 mt-1">
+                  <a href="mailto:${app.applicant_email}" class="hover:text-indigo-600 flex items-center gap-1">
+                    ✉️ ${app.applicant_email}
+                  </a>
+                  <a href="tel:${app.applicant_phone}" class="hover:text-indigo-600 flex items-center gap-1">
+                    📞 ${app.applicant_phone}
+                  </a>
+                  <span class="text-gray-400">🕒 Reageerde op ${submittedDate}</span>
+                </div>
+              </div>
+
+              ${app.motivation ? `
+                <div class="bg-white p-3 rounded-xl border border-gray-200/60 text-xs text-gray-600 mt-2">
+                  <span class="font-semibold text-gray-800">Motivatie:</span> "${app.motivation}"
+                </div>
+              ` : ''}
+            </div>
+
+            <div class="flex flex-col gap-2 shrink-0 border-t md:border-t-0 md:border-l border-gray-200 pt-3 md:pt-0 md:pl-4">
+              <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider hidden md:block">Status Wijzigen</span>
+              <div class="grid grid-cols-2 gap-1.5">
+                <button onclick="updateStatus(${app.id}, 'Aangenomen', ${app.shift_id})" class="text-xs font-medium px-3 py-1.5 rounded-lg border bg-white hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition text-gray-700">
+                  Aannemen 🟢
+                </button>
+                <button onclick="updateStatus(${app.id}, 'Afgewezen', ${app.shift_id})" class="text-xs font-medium px-3 py-1.5 rounded-lg border bg-white hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 transition text-gray-700">
+                  Afwijzen 🔴
+                </button>
+              </div>
+              <a href="mailto:${app.applicant_email}?subject=Update%20ZekerFlex%20Sollicitatie%20voor%20${encodeURIComponent(shiftTitle)}" class="w-full text-center bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium px-4 py-2 rounded-xl transition shadow-sm mt-1">
+                E-mail Sturen
+              </a>
+            </div>
+          </div>
+        `;
+        applicationsContainer.innerHTML += cardHtml;
+      });
+    }
+
+    async function updateStatus(appId, newStatus, shiftId) {
+      if (demoCompanyMode) { alert('Demo-modus is alleen-lezen. Log in met een bedrijfsaccount om kandidaten te wijzigen.'); return; }
+      const { error: appError } = await supabaseClient
+        .from('applications')
+        .update({ status: newStatus })
+        .eq('id', appId);
+
+      if (appError) {
+        alert('Fout bij bijwerken status: ' + appError.message);
+        return;
+      }
+
+      if (newStatus === 'Aangenomen' && shiftId) {
+        const { error: shiftError } = await supabaseClient
+          .from('shifts')
+          .update({ status: 'vervuld' })
+          .eq('id', shiftId);
+
+        if (shiftError) {
+          console.error('Fout bij bijwerken shift status:', shiftError);
+        }
+      }
+
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (user) fetchDashboardData(user.id);
+    }
+
+    checkAuthAndLoad();
+  </script>
+
+  <style>
+    @media (min-width: 1024px) {
+      #companySidebar.company-sidebar-collapsed { width: 76px; overflow: hidden; padding-left: .75rem; padding-right: .75rem; }
+      #companySidebar.company-sidebar-collapsed nav a { justify-content: center; font-size: 0; }
+      #companySidebar.company-sidebar-collapsed nav a:first-letter { font-size: 1rem; }
+      #companySidebar.company-sidebar-collapsed #companyAccountCard,
+      #companySidebar.company-sidebar-collapsed .mt-6 { display: none; }
+      #companySidebar.company-sidebar-collapsed .rounded-2xl { padding-left: .5rem; padding-right: .5rem; }
+    }
+  </style>
+
+</body>
+</html>

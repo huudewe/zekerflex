@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <link rel="stylesheet" href="zf-atmosphere.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZekerFlex - Beschikbare Shifts</title>
+  <link rel="icon" type="image/jpeg" href="zekerflex-logo.jpeg">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0f172a">
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root { --zf-black: #090a0f; --zf-white: #f8f8f6; --zf-orange: #ff642d; --zf-gray: #b9b8b2; }
+    body { background: var(--zf-white) !important; color: var(--zf-black) !important; font-family: Arial, Helvetica, sans-serif !important; }
+    header { background: var(--zf-black) !important; border-color: #24252a !important; color: var(--zf-white) !important; }
+    header a, header summary, header button, header select { color: var(--zf-white) !important; }
+    header a:hover, header summary:hover { color: var(--zf-orange) !important; }
+    header > div { max-width: 1440px !important; }
+    header details > div { background: #fff !important; border-color: #deddd7 !important; }
+    header details > div a, header #mobileMenu a, header #mobileMenu summary { color: var(--zf-black) !important; -webkit-text-fill-color: var(--zf-black) !important; }
+    header details > div a:hover, header #mobileMenu a:hover, header #mobileMenu summary:hover { color: var(--zf-orange) !important; background: #f3eee9 !important; }
+    header #mobileMenu { background: var(--zf-white) !important; border-color: #deddd7 !important; }
+    header img { background: #fff; border: 2px solid #fff; border-radius: 8px; padding: 1px; }
+    header a img + span { color: var(--zf-white) !important; background-image: none !important; -webkit-text-fill-color: var(--zf-white) !important; }
+    header a img + span span:first-child { color: var(--zf-orange) !important; -webkit-text-fill-color: var(--zf-orange) !important; }
+    header a img + span span:last-child { color: var(--zf-white) !important; -webkit-text-fill-color: var(--zf-white) !important; }
+    header .bg-gradient-to-r, header .bg-white\/60 { background: #17181d !important; border-color: #33343a !important; }
+    header #workerHomeButton { background: var(--zf-white) !important; color: var(--zf-black) !important; border-color: var(--zf-white) !important; }
+    header #companyHomeButton, header #osHomeButton { background: #292a30 !important; border: 1px solid #4b4c53 !important; color: var(--zf-white) !important; -webkit-text-fill-color: var(--zf-white) !important; }
+    header #companyHomeButton:hover, header #osHomeButton:hover { background: #292a30 !important; color: var(--zf-white) !important; }
+    header #startPlatformSession { background: var(--zf-orange) !important; border-color: var(--zf-orange) !important; color: var(--zf-black) !important; font-weight: 800 !important; }
+    header #startPlatformSession:hover { background: #e85022 !important; border-color: #e85022 !important; }
+    #mobileStartPlatformSession { display: block; width: 100%; background: var(--zf-orange) !important; border: 0; color: var(--zf-black) !important; font-weight: 800; }
+    #workerHomeContent > section:first-child { background: var(--zf-black) !important; color: var(--zf-white) !important; border-color: #27282d !important; }
+    #workerHomeContent > section:first-child h1, #workerHomeContent > section:first-child h2, #workerHomeContent > section:first-child strong { color: var(--zf-white) !important; }
+    #workerHomeContent > section:first-child #heroText { color: #c8c7c1 !important; }
+    #heroTitle .text-emerald-300 { color: var(--zf-orange) !important; -webkit-text-fill-color: var(--zf-orange) !important; }
+    #workerHomeContent > section:first-child .bg-slate-100 { background: #1e1f24 !important; border-color: #3a3b40 !important; color: var(--zf-gray) !important; }
+    #workerHomeContent > section:first-child .text-emerald-600 { color: var(--zf-orange) !important; }
+    #workerHomeContent > section:first-child #heroShiftsLink { background: var(--zf-orange) !important; color: var(--zf-black) !important; border-radius: 999px !important; }
+    #workerHomeContent > section:first-child #heroWorkerLink { background: transparent !important; border-color: #68686d !important; color: var(--zf-white) !important; border-radius: 999px !important; }
+    #workerHomeContent > section:first-child #installWorkerApp { background: var(--zf-white) !important; border-color: var(--zf-white) !important; color: var(--zf-black) !important; border-radius: 999px !important; }
+    #workerHomeContent > section:first-child .border-y { border-color: #34353a !important; }
+    #workerHomeContent > section:first-child .text-slate-900, #workerHomeContent > section:first-child .text-gray-500 { color: var(--zf-gray) !important; }
+    #workerHomeContent > section:first-child .border-\[10px\] { border-color: #000 !important; box-shadow: 0 25px 70px rgba(0,0,0,.45) !important; }
+    #workerHomeContent > section:not(:first-child) { background: var(--zf-white) !important; border-color: #deddd7 !important; }
+    #workerHomeContent > section:not(:first-child) h2, #workerHomeContent > section:not(:first-child) h3 { color: var(--zf-black) !important; }
+    #workerHomeContent > section:not(:first-child) .text-indigo-600, #workerHomeContent > section:not(:first-child) .text-emerald-600, #workerHomeContent > section:not(:first-child) .text-amber-600 { color: var(--zf-orange) !important; }
+    #workerHomeContent > section:not(:first-child) .bg-indigo-50, #workerHomeContent > section:not(:first-child) .bg-emerald-50, #workerHomeContent > section:not(:first-child) .bg-amber-50, #workerHomeContent > section:not(:first-child) .bg-slate-50 { background: #ebeae5 !important; }
+    #workerHomeContent > section:not(:first-child) .rounded-3xl, #workerHomeContent > section:not(:first-child) .rounded-2xl { border-radius: 4px !important; }
+    #workerHomeContent > section:last-child { background: var(--zf-orange) !important; color: var(--zf-black) !important; }
+    #workerHomeContent > section:last-child h2, #workerHomeContent > section:last-child p { color: var(--zf-black) !important; }
+    #workerHomeContent > section:last-child a { background: var(--zf-black) !important; color: var(--zf-white) !important; }
+    #companyHomeContent, #osHomeContent { background: var(--zf-white); }
+    #companyHomeContent section, #osHomeContent section { border-color: #deddd7 !important; }
+    main h1, main h2, main h3, main h4 { color: var(--zf-black) !important; }
+    main p, main blockquote, main .text-gray-500, main .text-gray-600, main .text-slate-600 { color: #5f5e59 !important; }
+    main .text-indigo-600, main .text-indigo-700, main .text-emerald-300, main .text-emerald-400, main .text-emerald-500, main .text-emerald-600, main .text-emerald-700, main .text-amber-600, main .text-amber-700 { color: var(--zf-orange) !important; }
+    #companyHomeContent section.bg-emerald-950, #osHomeContent section.bg-slate-950 { color: var(--zf-white) !important; }
+    #companyHomeContent section.bg-emerald-950 h1, #companyHomeContent section.bg-emerald-950 h2, #companyHomeContent section.bg-emerald-950 h3, #companyHomeContent section.bg-emerald-950 p, #osHomeContent section.bg-slate-950 h1, #osHomeContent section.bg-slate-950 h2, #osHomeContent section.bg-slate-950 h3, #osHomeContent section.bg-slate-950 p { color: var(--zf-white) !important; }
+    #companyHomeContent section.bg-emerald-950 span, #osHomeContent section.bg-slate-950 span { color: var(--zf-orange) !important; }
+    main .text-gray-900, main .text-slate-900 { color: var(--zf-black) !important; }
+    body [class*="text-indigo-"], body [class*="text-purple-"], body [class*="text-violet-"] { color: var(--zf-orange) !important; }
+    body [class*="bg-indigo-"], body [class*="bg-purple-"], body [class*="bg-violet-"] { background-color: var(--zf-orange) !important; }
+    body [class*="border-indigo-"], body [class*="border-purple-"], body [class*="border-violet-"] { border-color: var(--zf-orange) !important; }
+    body [class*="hover\\:bg-indigo-"]:hover, body [class*="hover\\:bg-purple-"]:hover, body [class*="hover\\:bg-violet-"]:hover { background-color: #e85022 !important; }
+    body [class*="hover\\:text-indigo-"]:hover, body [class*="hover\\:text-purple-"]:hover, body [class*="hover\\:text-violet-"]:hover { color: #e85022 !important; }
+    footer { background: var(--zf-black) !important; }
+    #workerHomeContent > section:first-child { position: relative; isolation: isolate; background: radial-gradient(circle at 78% 18%, rgba(255, 100, 45, .16), transparent 26%), linear-gradient(135deg, #090a0f 0%, #14161c 58%, #24252a 100%) !important; }
+    #workerHomeContent > section:first-child::before { content: ''; position: absolute; inset: 0; z-index: -1; opacity: .25; background-image: linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px); background-size: 42px 42px; mask-image: linear-gradient(to bottom right, black, transparent 72%); }
+    #workerHomeContent > section:first-child .max-w-7xl { position: relative; z-index: 1; }
+    .hero-people-scene { min-height: 560px; perspective: 1200px; transform-style: preserve-3d; }
+    .hero-people-scene::before { content: ''; position: absolute; width: 280px; height: 280px; top: 3%; right: 2%; border: 1px solid rgba(255,255,255,.2); border-radius: 50%; transform: translateZ(-20px) rotate(18deg); box-shadow: 0 0 0 28px rgba(255,255,255,.03), 0 0 0 56px rgba(255,255,255,.02); }
+    .hero-portrait-main { position: relative; z-index: 2; width: min(100%, 330px); transform: rotateY(-8deg) rotateZ(2deg) translateZ(34px); transition: transform .5s ease; }
+    .hero-people-scene:hover .hero-portrait-main { transform: rotateY(-2deg) rotateZ(0) translateZ(56px) translateY(-6px); }
+    .hero-portrait-secondary { position: absolute; z-index: 3; right: 2%; bottom: 13%; width: 142px; height: 190px; object-fit: cover; border: 7px solid #f8f8f6; border-radius: 22px; box-shadow: 18px 22px 35px rgba(0,0,0,.35); transform: rotateY(-18deg) rotateZ(7deg) translateZ(90px); }
+    .hero-float-card { position: absolute; z-index: 4; display: flex; align-items: center; gap: .65rem; padding: .8rem 1rem; border: 1px solid rgba(255,255,255,.35); border-radius: 14px; background: rgba(248,248,246,.94); color: #090a0f; box-shadow: 0 22px 45px rgba(0,0,0,.3); font-size: .75rem; font-weight: 800; transform-style: preserve-3d; }
+    .hero-float-card strong { display: block; font-size: 1rem; }
+    .hero-float-card span { color: #6b6a65; font-weight: 600; }
+    .hero-float-card.one { top: 12%; left: 0; transform: rotateY(18deg) rotateZ(-5deg) translateZ(80px); }
+    .hero-float-card.two { bottom: 3%; left: 5%; transform: rotateY(14deg) rotateZ(-3deg) translateZ(70px); }
+    .hero-float-dot { display: grid; width: 30px; height: 30px; place-items: center; border-radius: 50%; background: var(--zf-orange); color: #090a0f; }
+    .people-strip { display: grid; grid-template-columns: 1.2fr .8fr .8fr; gap: 1rem; }
+    .people-strip figure { position: relative; min-height: 230px; overflow: hidden; margin: 0; border-radius: 22px; background: #17181d; }
+    .people-strip figure:first-child { min-height: 300px; }
+    .people-strip img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s ease; }
+    .people-strip figure:hover img { transform: scale(1.06); }
+    .people-strip figcaption { position: absolute; right: 12px; bottom: 12px; left: 12px; padding: .7rem .8rem; border: 1px solid rgba(255,255,255,.22); border-radius: 12px; background: rgba(9,10,15,.76); color: #fff; font-size: .75rem; font-weight: 700; backdrop-filter: blur(10px); }
+    @media (max-width: 640px) { .hero-people-scene { min-height: 470px; } .hero-portrait-main { width: 270px; } .hero-portrait-secondary { right: 0; width: 112px; height: 150px; } .hero-float-card.one { left: -8px; } .hero-float-card.two { left: 0; } .people-strip { grid-template-columns: 1fr 1fr; } .people-strip figure:first-child { grid-column: 1 / -1; min-height: 260px; } .people-strip figure { min-height: 180px; } }
+    @media (max-width: 640px) { #workerHomeContent > section:first-child .grid { gap: 2rem !important; } #workerHomeContent > section:first-child h1 { font-size: 3.25rem !important; } }
+    #osHomeContent { background: #07151a !important; color: #e8f7f5; }
+    #osHomeContent section { position: relative; overflow: hidden; }
+    #osHomeContent section:first-child { min-height: 560px; display: flex; align-items: center; background: linear-gradient(135deg, #07151a 0%, #0d2930 58%, #123e42 100%) !important; }
+    #osHomeContent section:first-child::after { content: 'OS'; position: absolute; right: 5%; bottom: -8%; color: rgba(87, 224, 207, .08); font-size: clamp(12rem, 30vw, 30rem); font-weight: 900; line-height: .7; pointer-events: none; }
+    #osHomeContent section:first-child > div { position: relative; z-index: 1; }
+    #osHomeContent section:first-child h1 { max-width: 820px; font-size: clamp(3.2rem, 8vw, 7rem) !important; line-height: .95; letter-spacing: -.04em; }
+    #osHomeContent section:first-child h1 span { color: #63e6d5 !important; }
+    #osHomeContent section:first-child p { max-width: 650px; color: #b7d7d4 !important; }
+    #osHomeContent section:first-child a:first-child { background: #63e6d5 !important; color: #07151a !important; box-shadow: 0 14px 30px rgba(99,230,213,.18); }
+    #osHomeContent section:first-child a:last-child { border-color: #427b7d !important; color: #e8f7f5 !important; }
+    #osHomeContent section:nth-child(2) { background: #f1f8f7 !important; }
+    #osHomeContent section:nth-child(2) h2, #osHomeContent section:nth-child(2) h3 { color: #07151a !important; }
+    #osHomeContent section:nth-child(2) p { color: #557173 !important; }
+    #osHomeContent section:nth-child(2) a { border: 1px solid #d5e7e4; border-radius: 16px !important; background: #fff !important; box-shadow: 0 12px 28px rgba(7,21,26,.06); transition: transform .25s ease, box-shadow .25s ease; }
+    #osHomeContent section:nth-child(2) a:hover { transform: translateY(-5px); box-shadow: 0 18px 34px rgba(7,21,26,.12); }
+    #osHomeContent section:nth-child(2) a:nth-child(3) { border-color: #9edbd3; background: #e1f7f3 !important; }
+    #osHomeContent section:nth-child(3) { background: #d9eeeb !important; }
+    #osHomeContent section:nth-child(3) h2 { color: #07151a !important; }
+    #osHomeContent section:nth-child(3) p { color: #456a6c !important; }
+    #osHomeContent section:nth-child(3) .bg-white { border: 1px solid #c0ded9; box-shadow: 0 18px 40px rgba(7,21,26,.08); }
+    #osHomeContent section:nth-child(3) strong { color: #087b70 !important; }
+    @media (max-width: 640px) { #osHomeContent section:first-child { min-height: 620px; } #osHomeContent section:first-child h1 { font-size: 3.25rem !important; } #osHomeContent section:first-child::after { right: -8%; } }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans antialiased min-h-screen flex flex-col justify-between">
+
+  <!-- Navigatiebalk -->
+  <header class="bg-gradient-to-r from-cyan-100 via-teal-50 to-emerald-100 border-b border-emerald-200 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Logo + Werknemersmenu -->
+      <div class="flex items-center gap-3 sm:gap-5">
+        <a href="index.html" class="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-cyan-100 to-emerald-100 px-3 py-2 shadow-sm" aria-label="ZekerFlex home"><img src="zekerflex-logo.jpeg" alt="ZekerFlex logo" class="h-10 w-10 object-contain"></a>
+        <div class="flex items-center gap-1 rounded-xl bg-white/60 p-1 shadow-sm" aria-label="Kies profiel">
+          <button id="workerHomeButton" type="button" onclick="switchHomeProfile('worker')" class="rounded-lg bg-white px-2.5 py-2 text-xs font-bold text-indigo-700 border border-indigo-200 transition hover:bg-indigo-50 sm:px-3">Werknemer</button>
+          <button id="companyHomeButton" type="button" onclick="switchHomeProfile('company')" class="rounded-lg px-2.5 py-2 text-xs font-bold text-gray-600 transition hover:bg-emerald-100 hover:text-emerald-700 sm:px-3">Bedrijven</button>
+          <button id="osHomeButton" type="button" onclick="switchHomeProfile('os')" class="rounded-lg px-2.5 py-2 text-xs font-bold text-gray-600 transition hover:bg-cyan-100 hover:text-cyan-700 sm:px-3">ZekerFlex OS</button>
+        </div>
+        <details class="relative hidden lg:block" onmouseenter="this.open=true" onmouseleave="this.open=false">
+          <summary class="cursor-pointer list-none rounded-xl px-3 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 hover:text-indigo-600">Werknemers⌄</summary>
+          <div class="absolute left-0 top-12 z-50 w-64 rounded-2xl border border-gray-100 bg-white p-2 shadow-xl">
+            <a href="vind-klussen.html" class="block rounded-xl px-3 py-2 text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700">Vind klussen</a>
+            <a href="waarom-zekerflex.html" class="block rounded-xl px-3 py-2 text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700">Waarom ZekerFlex</a>
+            <a href="werknemer-hoe-werkt-zekerflex.html" class="block rounded-xl px-3 py-2 text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700">Hoe ZekerFlex werkt</a>
+            <a href="jouw-inkomsten.html" class="block rounded-xl px-3 py-2 text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700">Jouw inkomsten</a>
+            <a href="onze-belofte.html" class="block rounded-xl px-3 py-2 text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700">Onze belofte</a>
+            <a href="freesecurity.html" class="block rounded-xl px-3 py-2 text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700">FreeSecurity</a>
+            <a href="deals-extra.html" class="block rounded-xl px-3 py-2 text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700">Deals & extra's</a>
+            <a href="freelance-personeel.html" class="block rounded-xl px-3 py-2 text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700">Freelance & Personeel</a>
+          </div>
+        </details>
+        <details class="relative hidden lg:block" onmouseenter="this.open=true" onmouseleave="this.open=false">
+          <summary class="cursor-pointer list-none rounded-xl px-3 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 hover:text-emerald-600">Bedrijven⌄</summary>
+          <div class="absolute left-0 top-12 z-50 w-64 rounded-2xl border border-gray-100 bg-white p-2 shadow-xl">
+            <a href="vind-professionals.html" class="block rounded-xl px-3 py-2 text-sm font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-700">Vind professionals</a>
+            <a href="waarom-zekerflex-bedrijven.html" class="block rounded-xl px-3 py-2 text-sm font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-700">Waarom ZekerFlex</a>
+            <a href="functies.html" class="block rounded-xl px-3 py-2 text-sm font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-700">Functies</a>
+            <a href="tarieven.html" class="block rounded-xl px-3 py-2 text-sm font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-700">Tarieven</a>
+            <a href="integraties.html" class="block rounded-xl px-3 py-2 text-sm font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-700">Integraties</a>
+            <a href="flexpools.html" class="block rounded-xl px-3 py-2 text-sm font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-700">Flexpools</a>
+            <a href="resource-hub.html" class="block rounded-xl px-3 py-2 text-sm font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-700">Kennisbank</a>
+            <a href="personeelskosten.html" class="block rounded-xl px-3 py-2 text-sm font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-700">Personeelskosten</a>
+            <a href="strategische-personeelsplanning.html" class="block rounded-xl px-3 py-2 text-sm font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-700">Strategische personeelsplanning</a>
+            <a href="toekomst-van-werk.html" class="block rounded-xl px-3 py-2 text-sm font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-700">Toekomst van werk</a>
+            <a href="wet-dba.html" class="block rounded-xl px-3 py-2 text-sm font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-700">Wet DBA</a>
+          </div>
+        </details>
+        <details class="relative hidden lg:block" onmouseenter="this.open=true" onmouseleave="this.open=false">
+          <summary class="cursor-pointer list-none rounded-xl px-3 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 hover:text-indigo-600">Over ons⌄</summary>
+          <div class="absolute left-0 top-12 z-50 w-56 rounded-2xl border border-gray-100 bg-white p-2 shadow-xl">
+            <a href="over-ons.html" class="block rounded-xl px-3 py-2 text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700">Ons verhaal</a>
+            <a href="support.html" class="block rounded-xl px-3 py-2 text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700">Contact & support</a>
+            <a href="werknemer-hoe-werkt-zekerflex.html" class="block rounded-xl px-3 py-2 text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700">Hoe ZekerFlex werkt</a>
+          </div>
+        </details>
+      </div>
+      
+      <!-- Desktop Navigatie (Zichtbaar op tablets & computers) -->
+      <nav class="hidden lg:flex items-center space-x-6 text-sm font-medium text-gray-600">
+      </nav>
+
+      <!-- Desktop Actieknoppen -->
+      <div class="hidden lg:flex items-center space-x-3">
+        <select id="languageSelect" aria-label="Taal kiezen" class="bg-white/70 border border-emerald-200 rounded-xl px-2.5 py-2 text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-400">
+          <option value="nl">NL</option>
+          <option value="en">EN</option>
+        </select>
+        <a id="loginLink" href="login.html?choose=1" class="text-sm font-medium text-gray-700 hover:text-gray-900 px-3 py-2">Inloggen</a>
+        <button id="startPlatformSession" type="button" class="text-sm font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-2 rounded-xl border border-emerald-200">Sessie starten</button>
+        <a id="signupLink" href="login.html" class="text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 px-4 py-2.5 rounded-xl transition shadow-sm">Aanmelden</a>
+      </div>
+
+      <!-- Mobiele Hamburger Knop (Alleen zichtbaar op mobiel) -->
+      <button id="mobileMenuBtn" onclick="toggleMobileMenu()" class="lg:hidden p-2 rounded-xl text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition focus:outline-none">
+        <svg id="menuIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+        <svg id="closeIcon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+
+    </div>
+
+    <!-- Mobiel Dropdown Menu (Standaard verborgen) -->
+    <div id="mobileMenu" class="hidden lg:hidden border-t border-gray-100 bg-white px-4 pt-3 pb-5 space-y-3 shadow-lg">
+      <details class="rounded-xl border border-gray-100 px-3 py-2"><summary class="cursor-pointer list-none text-base font-medium text-gray-700">Over ons⌄</summary><div class="mt-2 space-y-1 border-t border-gray-100 pt-2"><a href="over-ons.html" class="block py-1.5 text-sm text-gray-600">Ons verhaal</a><a href="support.html" class="block py-1.5 text-sm text-gray-600">Contact & support</a><a href="werknemer-hoe-werkt-zekerflex.html" class="block py-1.5 text-sm text-gray-600">Hoe ZekerFlex werkt</a></div></details>
+      <select id="mobileLanguageSelect" aria-label="Taal kiezen" class="w-full rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-bold text-gray-700"><option value="nl">Nederlands</option><option value="en">English</option></select>
+      <details class="rounded-xl border border-gray-100 px-3 py-2">
+        <summary class="cursor-pointer list-none text-base font-medium text-gray-700">Werknemers⌄</summary>
+        <div class="mt-2 space-y-1 border-t border-gray-100 pt-2">
+          <a href="vind-klussen.html" class="block py-1.5 text-sm text-gray-600">Vind klussen</a>
+          <a href="waarom-zekerflex.html" class="block py-1.5 text-sm text-gray-600">Waarom ZekerFlex</a>
+          <a href="werknemer-hoe-werkt-zekerflex.html" class="block py-1.5 text-sm text-gray-600">Hoe ZekerFlex werkt</a>
+          <a href="jouw-inkomsten.html" class="block py-1.5 text-sm text-gray-600">Jouw inkomsten</a>
+          <a href="onze-belofte.html" class="block py-1.5 text-sm text-gray-600">Onze belofte</a>
+          <a href="freesecurity.html" class="block py-1.5 text-sm text-gray-600">FreeSecurity</a>
+          <a href="deals-extra.html" class="block py-1.5 text-sm text-gray-600">Deals & extra's</a>
+          <a href="freelance-personeel.html" class="block py-1.5 text-sm text-gray-600">Freelance & Personeel</a>
+        </div>
+      </details>
+      <details class="rounded-xl border border-gray-100 px-3 py-2">
+        <summary class="cursor-pointer list-none text-base font-medium text-gray-700">Bedrijven⌄</summary>
+        <div class="mt-2 space-y-1 border-t border-gray-100 pt-2">
+          <a href="vind-professionals.html" class="block py-1.5 text-sm text-gray-600">Vind professionals</a>
+          <a href="waarom-zekerflex-bedrijven.html" class="block py-1.5 text-sm text-gray-600">Waarom ZekerFlex</a>
+          <a href="functies.html" class="block py-1.5 text-sm text-gray-600">Functies</a>
+          <a href="tarieven.html" class="block py-1.5 text-sm text-gray-600">Tarieven</a>
+          <a href="integraties.html" class="block py-1.5 text-sm text-gray-600">Integraties</a>
+          <a href="flexpools.html" class="block py-1.5 text-sm text-gray-600">Flexpools</a>
+          <a href="resource-hub.html" class="block py-1.5 text-sm text-gray-600">Kennisbank</a>
+          <a href="personeelskosten.html" class="block py-1.5 text-sm text-gray-600">Personeelskosten</a>
+          <a href="strategische-personeelsplanning.html" class="block py-1.5 text-sm text-gray-600">Strategische personeelsplanning</a>
+          <a href="toekomst-van-werk.html" class="block py-1.5 text-sm text-gray-600">Toekomst van werk</a>
+          <a href="wet-dba.html" class="block py-1.5 text-sm text-gray-600">Wet DBA</a>
+        </div>
+      </details>
+      
+      <div class="pt-3 border-t border-gray-100 space-y-2">
+        <button id="mobileStartPlatformSession" type="button" class="rounded-xl px-3 py-2.5 text-center">Sessie starten</button>
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <a href="login.html?choose=1" class="block text-center text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 py-2.5 rounded-xl transition">Inloggen</a>
+          <a href="login.html" class="block text-center text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 py-2.5 rounded-xl transition">Aanmelden</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-grow">
+    <div id="workerHomeContent">
+    <section class="bg-white text-slate-900 overflow-hidden border-b border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
+        <div class="grid lg:grid-cols-[1.15fr_0.85fr] gap-12 items-center">
+          <div>
+            <span class="inline-flex items-center gap-2 rounded-full bg-slate-100 border border-slate-200 px-4 py-2 text-xs font-bold text-slate-700">✦ Het platform voor flexibel werk</span>
+            <h1 id="heroTitle" class="text-5xl sm:text-7xl font-black tracking-tight leading-[0.98] mt-7">Work to live.<br><span class="text-emerald-600">Werk op jouw manier.</span></h1>
+            <p id="heroText" class="text-slate-600 text-lg sm:text-xl leading-relaxed max-w-xl mt-7">Ervaar vrijheid zonder gedoe. Kies werk dat past bij jouw leven, verdien eerlijk en ontwikkel jezelf met iedere shift.</p>
+            <div class="flex flex-col sm:flex-row flex-wrap gap-3 mt-9"><a id="heroShiftsLink" href="#shifts" class="bg-emerald-400 hover:bg-emerald-300 text-slate-900 font-extrabold px-6 py-3.5 rounded-2xl transition text-center">Bekijk beschikbare shifts</a><a id="heroWorkerLink" href="login.html?role=werknemer" class="border border-slate-200 bg-white hover:bg-slate-100 text-slate-900 font-bold px-6 py-3.5 rounded-2xl transition text-center">Start als werknemer</a><button id="installWorkerApp" type="button" class="border border-slate-900 bg-slate-900 px-6 py-3.5 rounded-2xl text-white font-bold transition hover:bg-slate-700">Download de werknemersapp</button><button id="heroStartPlatformSession" type="button" class="border border-orange-500 bg-orange-500 px-6 py-3.5 rounded-2xl text-slate-900 font-extrabold transition hover:bg-orange-400">Sessie starten</button></div><p id="installWorkerAppStatus" class="hidden mt-3 text-sm font-semibold text-slate-500"></p>
+          </div>
+          <div class="hero-people-scene relative flex items-center justify-center">
+            <div class="hero-float-card one"><span class="hero-float-dot">✓</span><div><strong>Match gevonden</strong><span>Past bij jouw profiel</span></div></div>
+            <div class="hero-float-card two"><span class="hero-float-dot">€</span><div><strong>€20,00 / uur</strong><span>Transparant tarief</span></div></div>
+            <div class="hero-portrait-main relative overflow-hidden rounded-[2.5rem] border-[10px] border-slate-950 bg-slate-950 shadow-2xl">
+              <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=900&q=85" alt="Werknemer klaar voor een nieuwe klus" class="h-[520px] w-full object-cover object-center">
+              <div class="absolute inset-x-3 bottom-3 rounded-2xl bg-white/95 p-4 shadow-xl backdrop-blur-sm"><div class="flex items-center gap-3"><img src="app-icon-192.svg" alt="ZekerFlex" class="h-11 w-11 rounded-xl"><div><strong class="block text-base text-slate-900">ZekerFlex</strong><p class="text-sm leading-tight text-slate-700">Gefeliciteerd! Je bent uitgekozen voor de klus.<br><b>Zet hem op!</b></p></div></div></div>
+            </div>
+            <img class="hero-portrait-secondary" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=500&q=85" alt="Freelancer van ZekerFlex">
+          </div>
+        </div>
+        <div class="mt-16 overflow-hidden border-y border-slate-200 py-5"><div class="stats-marquee flex min-w-max gap-12"><div><strong class="text-2xl font-black text-slate-900">20.000+</strong><span class="ml-2 text-xs text-slate-500">shifts per jaar</span></div><div><strong class="text-2xl font-black text-slate-900">10.000+</strong><span class="ml-2 text-xs text-slate-500">betrouwbare bedrijven</span></div><div><strong class="text-2xl font-black text-slate-900">€20</strong><span class="ml-2 text-xs text-slate-500">gemiddeld per uur</span></div><div><strong class="text-2xl font-black text-slate-900">4.9/5</strong><span class="ml-2 text-xs text-slate-500">ervaring van werkers</span></div><div><strong class="text-2xl font-black text-slate-900">20.000+</strong><span class="ml-2 text-xs text-slate-500">shifts per jaar</span></div><div><strong class="text-2xl font-black text-slate-900">10.000+</strong><span class="ml-2 text-xs text-slate-500">betrouwbare bedrijven</span></div></div></div>
+      </div>
+    </section>
+
+    <section class="bg-white border-y border-gray-100"><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20"><div class="max-w-2xl mb-10"><span class="text-xs font-bold uppercase tracking-wider text-emerald-600">Waarom ZekerFlex?</span><h2 class="text-4xl font-black text-gray-900 mt-2">Maximaal verdienen,<br><span class="text-indigo-600">minimale onzekerheid.</span></h2><p class="text-gray-500 leading-relaxed mt-4">Transparante tarieven, betrouwbare bedrijven en een platform dat jou helpt om werk en leven zelf te organiseren.</p></div><div class="grid md:grid-cols-3 gap-5"><div class="bg-indigo-50 rounded-3xl p-7"><span class="text-3xl">⚡</span><h3 class="font-black text-xl mt-5">Snel geregeld</h3><p class="text-sm text-gray-600 mt-2 leading-relaxed">Reageer direct op een shift en krijg snel duidelijkheid van de opdrachtgever.</p></div><div class="bg-emerald-50 rounded-3xl p-7"><span class="text-3xl">🛡</span><h3 class="font-black text-xl mt-5">Zekerheid inbegrepen</h3><p class="text-sm text-gray-600 mt-2 leading-relaxed">Werk met geverifieerde bedrijven en zie vooraf precies wat je verdient.</p></div><div class="bg-amber-50 rounded-3xl p-7"><span class="text-3xl">↗</span><h3 class="font-black text-xl mt-5">Blijf groeien</h3><p class="text-sm text-gray-600 mt-2 leading-relaxed">Probeer verschillende sectoren, bouw ervaring op en maak je profiel sterker.</p></div></div></div></section>
+
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20"><div class="text-center mb-12"><span class="text-xs font-bold uppercase tracking-wider text-indigo-600">Zo werkt het</span><h2 class="text-3xl font-black text-gray-900 mt-2">Van profiel naar eerste shift</h2></div><div class="grid md:grid-cols-3 gap-8"><div class="text-center"><div class="w-14 h-14 mx-auto rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-xl font-black">1</div><h3 class="font-black text-lg mt-5">Maak je profiel</h3><p class="text-sm text-gray-500 mt-2">Vertel wat je kunt en kies hoe jij wilt werken.</p></div><div class="text-center"><div class="w-14 h-14 mx-auto rounded-2xl bg-emerald-500 text-white flex items-center justify-center text-xl font-black">2</div><h3 class="font-black text-lg mt-5">Kies je shift</h3><p class="text-sm text-gray-500 mt-2">Vergelijk tijden, locatie, sector en tarief.</p></div><div class="text-center"><div class="w-14 h-14 mx-auto rounded-2xl bg-amber-500 text-white flex items-center justify-center text-xl font-black">3</div><h3 class="font-black text-lg mt-5">Werk en verdien</h3><p class="text-sm text-gray-500 mt-2">Rond je shift af en bouw aan je volgende kans.</p></div></div></section>
+
+    <section class="bg-slate-50"><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 grid lg:grid-cols-2 gap-12 items-center"><div><span class="text-xs font-bold uppercase tracking-wider text-slate-700">Ontwikkel jezelf</span><h2 class="text-4xl font-black text-gray-900 mt-2">Maak van je profiel een magneet.</h2><p class="text-gray-600 leading-relaxed mt-4">Varieer met werk, ontdek nieuwe skills en bouw stap voor stap aan een profiel waarmee je meer kansen en betere tarieven aantrekt.</p><a href="login.html?role=werknemer" class="inline-block mt-7 bg-slate-900 hover:bg-slate-800 text-white font-bold px-6 py-3 rounded-2xl transition">Start als werknemer</a></div><div class="grid grid-cols-2 gap-4"><div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200"><strong class="text-3xl font-black text-slate-900">7</strong><p class="text-sm text-gray-500 mt-2">sectoren om te ontdekken</p></div><div class="bg-white rounded-3xl p-6 shadow-sm mt-8 border border-slate-200"><strong class="text-3xl font-black text-emerald-600">31</strong><p class="text-sm text-gray-500 mt-2">functies met groeikansen</p></div></div></div><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20"><div class="people-strip"><figure><img src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1100&q=85" alt="Team werkt samen"><figcaption>Samenwerken met mensen die vooruit willen.</figcaption></figure><figure><img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=700&q=85" alt="Professional aan het werk"><figcaption>Jouw talent, zichtbaar op het juiste moment.</figcaption></figure><figure><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=700&q=85" alt="Freelancer met vertrouwen"><figcaption>Werk dat past bij jouw tempo.</figcaption></figure></div></div></section>
+
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20"><div class="text-center mb-10"><span class="text-xs font-bold uppercase tracking-wider text-amber-600">Echte ervaringen</span><h2 class="text-3xl font-black text-gray-900 mt-2">Werk dat in jouw leven past</h2></div><div class="grid md:grid-cols-3 gap-5"><blockquote class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm text-gray-600 leading-relaxed">“Ik plan mijn shifts om mijn studie heen. Dat geeft me vrijheid en ondertussen ontmoet ik steeds nieuwe mensen.”<footer class="mt-5 text-sm font-bold text-gray-900">Sanne <span class="font-normal text-gray-400">· werknemer</span></footer></blockquote><blockquote class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm text-gray-600 leading-relaxed">“We vinden snel extra mensen wanneer het druk wordt. De communicatie blijft overzichtelijk.”<footer class="mt-5 text-sm font-bold text-gray-900">Mark <span class="font-normal text-gray-400">· opdrachtgever</span></footer></blockquote><blockquote class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm text-gray-600 leading-relaxed">“Door verschillende opdrachten te proberen, heb ik ontdekt welk werk echt bij mij past.”<footer class="mt-5 text-sm font-bold text-gray-900">Yara <span class="font-normal text-gray-400">· werknemer</span></footer></blockquote></div></section>
+
+    <section class="bg-gray-900 text-white"><div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center"><h2 class="text-3xl sm:text-4xl font-black">Klaar voor je volgende shift?</h2><p class="text-gray-400 mt-3">Maak vandaag je profiel aan en ontdek wat er morgen mogelijk is.</p><a href="login.html?role=werknemer" class="inline-block mt-7 bg-emerald-400 hover:bg-emerald-300 text-gray-900 font-extrabold px-7 py-3.5 rounded-2xl transition">Aanmelden als werknemer</a></div></section>
+    </div>
+
+    <div id="companyHomeContent" class="hidden">
+      <section class="bg-emerald-950 text-white"><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28"><div class="max-w-3xl"><span class="inline-flex rounded-full border border-emerald-700 bg-emerald-900 px-4 py-2 text-xs font-bold text-emerald-200">Voor bedrijven en opdrachtgevers</span><h1 class="mt-7 text-5xl font-black tracking-tight sm:text-7xl">Sterke mensen.<br><span class="text-emerald-300">Precies wanneer jij ze nodig hebt.</span></h1><p class="mt-7 max-w-2xl text-lg leading-relaxed text-emerald-100">Vul je team flexibel aan met betrouwbare professionals. Plaats een shift, ontvang reacties en beheer alles vanuit je eigen werkgeversomgeving.</p><div class="mt-9 flex flex-col gap-3 sm:flex-row"><a href="login.html?role=opdrachtgever" class="rounded-2xl bg-emerald-400 px-6 py-3.5 text-center font-extrabold text-emerald-950 hover:bg-emerald-300">Start als bedrijf</a><a href="plaats-shift.html" class="rounded-2xl border border-emerald-700 px-6 py-3.5 text-center font-bold text-white hover:bg-emerald-900">Bekijk voor opdrachtgevers</a></div></div><div class="mt-16 grid grid-cols-2 gap-4 border-t border-emerald-800 pt-8 md:grid-cols-4"><div><strong class="text-2xl font-black">10.000+</strong><span class="mt-1 block text-xs text-emerald-300">betrouwbare bedrijven</span></div><div><strong class="text-2xl font-black">20.000+</strong><span class="mt-1 block text-xs text-emerald-300">shifts per jaar</span></div><div><strong class="text-2xl font-black">24 uur</strong><span class="mt-1 block text-xs text-emerald-300">snel extra personeel</span></div><div><strong class="text-2xl font-black">98%</strong><span class="mt-1 block text-xs text-emerald-300">matchkwaliteit</span></div></div></div></section>
+      <section class="bg-white px-4 py-20 sm:px-6 lg:px-8"><div class="mx-auto max-w-7xl"><div class="max-w-2xl"><span class="text-xs font-bold uppercase tracking-wider text-emerald-600">Eenvoudig georganiseerd</span><h2 class="mt-2 text-4xl font-black text-gray-900">Van personeelsvraag naar oplossing.</h2></div><div class="mt-12 grid gap-5 md:grid-cols-3"><div class="rounded-3xl bg-emerald-50 p-7"><span class="text-3xl">1</span><h3 class="mt-5 text-xl font-black">Plaats je shift</h3><p class="mt-2 text-sm leading-relaxed text-gray-600">Geef functie, tarief, locatie en planning door.</p></div><div class="rounded-3xl bg-indigo-50 p-7"><span class="text-3xl">2</span><h3 class="mt-5 text-xl font-black">Ontvang reacties</h3><p class="mt-2 text-sm leading-relaxed text-gray-600">Bekijk kandidaten en hun ervaring in je dashboard.</p></div><div class="rounded-3xl bg-amber-50 p-7"><span class="text-3xl">3</span><h3 class="mt-5 text-xl font-black">Beheer je team</h3><p class="mt-2 text-sm leading-relaxed text-gray-600">Neem aan, wijs af en bouw aan een flexibele pool.</p></div></div></div></section>
+      <section class="bg-indigo-50 px-4 py-20 sm:px-6 lg:px-8"><div class="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-2"><div><h2 class="text-4xl font-black text-gray-900">Meer grip op je planning.</h2><p class="mt-4 leading-relaxed text-gray-600">Van horeca en retail tot logistiek: ZekerFlex helpt je snel de juiste ondersteuning te vinden, zonder onnodige administratie.</p></div><div class="rounded-3xl bg-white p-7 shadow-sm"><div class="flex items-center justify-between border-b border-gray-100 pb-4"><strong class="text-lg">Werkgeversportaal</strong><span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">Actief</span></div><div class="mt-5 space-y-3 text-sm text-gray-600"><p>✓ Kandidaten overzichtelijk beheren</p><p>✓ Statussen direct bijwerken</p><p>✓ Support en communicatie op één plek</p></div><a href="login.html?role=opdrachtgever" class="mt-6 block rounded-xl bg-indigo-600 py-3 text-center text-sm font-bold text-white hover:bg-indigo-700">Naar werkgeversdashboard</a></div></div></section>
+      <section class="border-y border-cyan-200 bg-cyan-50 px-4 py-20 sm:px-6 lg:px-8"><div class="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-[1.2fr_.8fr]"><div><span class="text-xs font-bold uppercase tracking-wider text-cyan-700">Partners & uitzendbureaus</span><h2 class="mt-2 text-4xl font-black text-slate-900">Bouw veilig mee aan de flexmarkt.</h2><p class="mt-4 max-w-2xl leading-relaxed text-slate-600">Bureau Partners beheren een eigen afgeschermde flexpool, werken samen via gerichte groepen en krijgen met Pro of Enterprise extra zichtbaarheid in zoekresultaten en voorgestelde klussen.</p><div class="mt-6 flex flex-wrap gap-3 text-sm font-bold text-slate-700"><span class="rounded-full bg-white px-4 py-2">Eigen dataruimte</span><span class="rounded-full bg-white px-4 py-2">Chat en polls</span><span class="rounded-full bg-white px-4 py-2">Pro & Enterprise</span></div></div><div class="rounded-2xl bg-slate-900 p-7 text-white"><h3 class="text-xl font-black">Meld je bureau aan</h3><p class="mt-2 text-sm leading-relaxed text-slate-300">Start met compliancecontrole voor KvK, SNA en Wtta. Toegang volgt na goedkeuring van de voorwaarden.</p><a href="login.html?role=bureau_partner" class="mt-6 block rounded-xl bg-cyan-400 px-5 py-3 text-center font-extrabold text-slate-950 hover:bg-cyan-300">Direct samenwerken</a></div></div></section>
+    </div>
+
+    <div id="osHomeContent" class="hidden">
+      <section class="bg-slate-950 text-white"><div class="max-w-7xl mx-auto px-4 py-20 sm:px-6 lg:px-8"><span class="inline-flex rounded-full border border-cyan-700 bg-cyan-950 px-4 py-2 text-xs font-bold text-cyan-200">ZekerFlex OS</span><h1 class="mt-7 max-w-4xl text-5xl font-black tracking-tight sm:text-7xl">Alle diensten.<br><span class="text-cyan-300">Eén slimme werkplek.</span></h1><p class="mt-7 max-w-2xl text-lg leading-relaxed text-slate-300">ZekerFlex OS brengt werknemers, bedrijven, planning, support, administratie en software samen in één duidelijk platform.</p><div class="mt-9 flex flex-col gap-3 sm:flex-row"><a href="zekerflex-os.html" class="rounded-2xl bg-cyan-400 px-6 py-3.5 text-center font-extrabold text-slate-950 hover:bg-cyan-300">Bekijk ZekerFlex OS</a><a href="login.html?role=opdrachtgever" class="rounded-2xl border border-slate-700 px-6 py-3.5 text-center font-bold text-white hover:bg-slate-900">Start met een account</a></div></div></section>
+      <section class="bg-white px-4 py-20 sm:px-6 lg:px-8"><div class="mx-auto max-w-7xl"><div class="max-w-2xl"><span class="text-xs font-bold uppercase tracking-wider text-cyan-600">Het complete platform</span><h2 class="mt-2 text-4xl font-black text-gray-900">Van eerste shift tot volledige bedrijfsvoering.</h2><p class="mt-4 text-gray-500">Kies de dienst die je nodig hebt. Alles groeit mee met jouw profiel, team of organisatie.</p></div><div class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4"><a href="werknemer-dashboard.html" class="rounded-3xl bg-indigo-50 p-6 transition hover:-translate-y-1"><span class="text-3xl">♙</span><h3 class="mt-5 text-xl font-black">Werknemers</h3><p class="mt-2 text-sm text-gray-600">Shifts, sollicitaties en inkomen.</p></a><a href="dashboard.html" class="rounded-3xl bg-emerald-50 p-6 transition hover:-translate-y-1"><span class="text-3xl">▦</span><h3 class="mt-5 text-xl font-black">Bedrijven</h3><p class="mt-2 text-sm text-gray-600">Teams, kandidaten en planning.</p></a><a href="zekerflex-os.html" class="rounded-3xl bg-cyan-50 p-6 transition hover:-translate-y-1"><span class="text-3xl">⚙</span><h3 class="mt-5 text-xl font-black">Software</h3><p class="mt-2 text-sm text-gray-600">POS, HR, voorraad en boekhouding.</p></a><a href="support.html" class="rounded-3xl bg-amber-50 p-6 transition hover:-translate-y-1"><span class="text-3xl">💬</span><h3 class="mt-5 text-xl font-black">Support</h3><p class="mt-2 text-sm text-gray-600">Persoonlijke hulp en tickets.</p></a></div></div></section>
+      <section class="bg-gray-100 px-4 py-20 sm:px-6 lg:px-8"><div class="mx-auto grid max-w-7xl gap-10 lg:grid-cols-2 lg:items-center"><div><span class="text-xs font-bold uppercase tracking-wider text-emerald-600">Eén account, passende toegang</span><h2 class="mt-2 text-4xl font-black text-gray-900">Iedere gebruiker ziet wat bij zijn rol hoort.</h2><p class="mt-4 leading-relaxed text-gray-600">Werknemers houden hun eigen gegevens en sollicitaties privé. Werkgevers beheren alleen hun eigen organisatie. Admins houden toezicht op het platform.</p></div><div class="rounded-3xl bg-white p-7 shadow-sm"><div class="space-y-4 text-sm"><div class="flex items-center justify-between border-b border-gray-100 pb-3"><span>Werknemer</span><strong class="text-indigo-600">Eigen werkprofiel</strong></div><div class="flex items-center justify-between border-b border-gray-100 pb-3"><span>Werkgever / manager</span><strong class="text-emerald-600">Eigen bedrijfs-CRM</strong></div><div class="flex items-center justify-between"><span>Admin</span><strong class="text-cyan-600">Platformbeheer</strong></div></div></div></div></section>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-slate-950 text-gray-300 mt-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div class="md:col-span-1">
+          <a href="index.html" class="text-2xl font-extrabold text-white">Zeker<span class="text-indigo-400">Flex</span></a>
+          <p class="text-sm text-gray-400 leading-relaxed mt-3">De flexibele plek voor betrouwbare shifts, gemotiveerde werknemers en sterke opdrachtgevers.</p>
+          <span class="inline-flex items-center gap-2 mt-4 px-3 py-2 rounded-xl bg-emerald-950 text-emerald-300 border border-emerald-800 text-xs font-bold">● Platform actief</span>
+        </div>
+        <div><h3 class="text-sm font-bold text-white mb-4">Voor werknemers</h3><div class="space-y-2 text-sm"><a href="index.html" class="block hover:text-indigo-300 transition">Shifts zoeken</a><a href="werknemer-dashboard.html" class="block hover:text-indigo-300 transition">Mijn dashboard</a><a href="login.html?role=werknemer" class="block hover:text-indigo-300 transition">Werknemersaccount</a></div></div>
+        <div><h3 class="text-sm font-bold text-white mb-4">Voor werkgevers</h3><div class="space-y-2 text-sm"><a href="plaats-shift.html" class="block hover:text-emerald-300 transition">Voor opdrachtgevers</a><a href="login.html?role=opdrachtgever" class="block hover:text-emerald-300 transition">Werkgeversaccount</a></div></div>
+        <div><h3 class="text-sm font-bold text-white mb-4">ZekerFlex status</h3><div class="rounded-2xl bg-slate-900 border border-slate-800 p-4 space-y-3 text-sm"><div class="flex justify-between"><span class="text-gray-400">Beschikbaarheid</span><strong class="text-emerald-400">Online</strong></div><div class="flex justify-between"><span class="text-gray-400">Veilige login</span><strong class="text-indigo-300">Actief</strong></div><div class="flex justify-between"><span class="text-gray-400">Support</span><strong class="text-amber-300">Beschikbaar</strong></div></div></div>
+      </div>
+      <div class="border-t border-slate-800 mt-10 pt-6 flex flex-col sm:flex-row justify-between gap-3 text-xs text-gray-500"><span>&copy; 2026 ZekerFlex B.V. Alle rechten voorbehouden.</span><span>Veilig werken. Snel geregeld.</span></div>
+    </div>
+  </footer>
+
+  <script src="support-widget.js?v=26"></script>
+  <script>
+    let deferredInstallPrompt;
+    const installWorkerApp = document.getElementById('installWorkerApp');
+    const installWorkerAppStatus = document.getElementById('installWorkerAppStatus');
+
+    function isStandaloneMode() {
+      return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    }
+
+    function showInstallStatus(message) {
+      installWorkerAppStatus.textContent = message;
+      installWorkerAppStatus.classList.remove('hidden');
+    }
+
+    window.addEventListener('beforeinstallprompt', (event) => {
+      event.preventDefault();
+      deferredInstallPrompt = event;
+      installWorkerApp.classList.remove('hidden');
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredInstallPrompt = null;
+      installWorkerApp.classList.add('hidden');
+      showInstallStatus('De werknemersapp is geïnstalleerd.');
+    });
+
+    installWorkerApp.addEventListener('click', async () => {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        await deferredInstallPrompt.userChoice;
+        deferredInstallPrompt = null;
+        return;
+      }
+      if (window.location.protocol === 'file:') {
+        const appUrl = new URL('werknemer-dashboard.html?demo=werknemer', window.location.href).href;
+        const shortcut = `[InternetShortcut]\nURL=${appUrl}\nIconFile=${new URL('zekerflex-logo.svg', window.location.href).href}\nIconIndex=0`;
+        const download = document.createElement('a');
+        download.href = URL.createObjectURL(new Blob([shortcut], { type: 'application/internet-shortcut' }));
+        download.download = 'ZekerFlex-Werknemersapp.url';
+        download.click();
+        URL.revokeObjectURL(download.href);
+        showInstallStatus('De losse werknemersapp is gedownload. Open het .url-bestand vanuit je Downloads of zet het op je bureaublad.');
+        return;
+      }
+      if (isStandaloneMode()) return;
+      showInstallStatus('Open deze pagina in Chrome of Edge via https om de app te installeren.');
+    });
+
+    if (isStandaloneMode()) {
+      installWorkerApp.classList.add('hidden');
+    }
+
+    if ('serviceWorker' in navigator && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
+      navigator.serviceWorker.register('service-worker.js').catch((error) => console.error('PWA registratie mislukt:', error));
+    }
+  </script>
+
+  <!-- Modal voor Shift Details & Reageren -->
+  <div id="shiftModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-200">
+    <div id="modalContainer" class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl scale-95 transition-transform duration-200 max-h-[90vh] overflow-y-auto">
+      
+      <!-- Modal Header -->
+      <div class="flex justify-between items-start mb-4">
+        <div>
+          <h2 id="modalTitle" class="text-2xl font-extrabold text-gray-900">Shift Titel</h2>
+          <p id="modalCompany" class="text-sm text-indigo-600 font-semibold mt-0.5">Bedrijfsnaam</p>
+        </div>
+        <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition">✕</button>
+      </div>
+
+      <!-- Details Grid -->
+      <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-gray-50 p-4 rounded-2xl border border-gray-100">
+        <div>
+          <span class="text-xs text-gray-400 block font-semibold uppercase">Uurtarief</span>
+          <span id="modalRate" class="font-bold text-emerald-600 text-base">€ 0,00 / uur</span>
+        </div>
+        <div>
+          <span class="text-xs text-gray-400 block font-semibold uppercase">Locatie</span>
+          <span id="modalLocation" class="font-medium text-gray-800">Locatie</span>
+        </div>
+        <div class="col-span-2 border-t border-gray-200/60 pt-2 mt-1">
+          <span class="text-xs text-gray-400 block font-semibold uppercase">Datum & Tijd</span>
+          <span id="modalDate" class="font-medium text-gray-800">Datum</span>
+        </div>
+      </div>
+
+      <!-- Omschrijving -->
+      <div class="mb-6">
+        <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Functieomschrijving</h4>
+        <p id="modalDesc" class="text-sm text-gray-600 leading-relaxed">Omschrijving van de shift...</p>
+      </div>
+
+      <!-- Reactie Formulier -->
+      <div class="border-t border-gray-100 pt-5">
+        <h3 class="text-base font-bold text-gray-900 mb-3">Reageren op deze shift</h3>
+        
+        <form id="applyForm" onsubmit="handleApplySubmit(event)" class="space-y-3">
+          <input type="hidden" id="modalShiftId">
+
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 uppercase mb-1" for="applicantName">Je Naam *</label>
+            <input type="text" id="applicantName" required placeholder="bijv. Sophie de Vries" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-gray-500 uppercase mb-1" for="applicantEmail">E-mailadres *</label>
+              <input type="email" id="applicantEmail" required placeholder="sophie@example.com" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-gray-500 uppercase mb-1" for="applicantPhone">Telefoonnummer *</label>
+              <input type="tel" id="applicantPhone" required placeholder="06 12345678" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 uppercase mb-1" for="applicantMotivation">Korte motivatie / ervaring (Optioneel)</label>
+            <textarea id="applicantMotivation" rows="2" placeholder="Waarom ben jij geschikt voor deze shift?" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+          </div>
+
+          <button type="submit" id="submitApplyBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-xl transition shadow-md text-sm mt-2">
+            🚀 Direct Solliciteren
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT: DATA & FILTER LOGICA -->
+  <script>
+    function switchHomeProfile(profile) {
+      const workerHome = document.getElementById('workerHomeContent');
+      const companyHome = document.getElementById('companyHomeContent');
+      const workerButton = document.getElementById('workerHomeButton');
+      const companyButton = document.getElementById('companyHomeButton');
+      const osHome = document.getElementById('osHomeContent');
+      const osButton = document.getElementById('osHomeButton');
+      const workerActive = profile === 'worker';
+      const companyActive = profile === 'company';
+      const osActive = profile === 'os';
+      workerHome.classList.toggle('hidden', !workerActive);
+      companyHome.classList.toggle('hidden', !companyActive);
+      osHome.classList.toggle('hidden', !osActive);
+      workerButton.className = workerActive ? 'rounded-lg bg-white px-2.5 py-2 text-xs font-bold text-indigo-700 border border-indigo-200 transition hover:bg-indigo-50 sm:px-3' : 'rounded-lg px-2.5 py-2 text-xs font-bold text-gray-600 transition hover:bg-indigo-100 hover:text-indigo-700 sm:px-3';
+      companyButton.className = companyActive ? 'rounded-lg bg-emerald-600 px-2.5 py-2 text-xs font-bold text-white transition hover:bg-emerald-700 sm:px-3' : 'rounded-lg px-2.5 py-2 text-xs font-bold text-gray-600 transition hover:bg-emerald-100 hover:text-emerald-700 sm:px-3';
+      osButton.className = osActive ? 'rounded-lg bg-cyan-400 px-2.5 py-2 text-xs font-bold text-slate-950 transition hover:bg-cyan-300 sm:px-3' : 'rounded-lg px-2.5 py-2 text-xs font-bold text-gray-600 transition hover:bg-cyan-100 hover:text-cyan-700 sm:px-3';
+    }
+    switchHomeProfile('worker');
+
+    const homeTopShell = document.querySelector('main');
+    if (homeTopShell) homeTopShell.classList.add('zf-spring-top');
+    window.setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        window.location.reload();
+      }
+    }, 180000);
+
+    function openPlatformSessionModal() {
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/55 p-4';
+      modal.innerHTML = `
+        <div class="w-full max-w-md rounded-3xl bg-white p-5 shadow-2xl">
+          <div class="mb-4 flex items-center justify-between">
+            <div>
+              <p class="text-xs font-bold uppercase tracking-[0.16em] text-emerald-600">Sessie</p>
+              <h3 class="text-xl font-black text-slate-900">Kies contact</h3>
+            </div>
+            <button type="button" data-close-session class="text-2xl text-slate-400">×</button>
+          </div>
+          <div class="space-y-2">
+            <button type="button" class="zf-home-session-option flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-left" data-session="ZekerFlex support">
+              <span><span class="block text-sm font-bold text-slate-800">ZekerFlex support</span><span class="text-xs text-slate-500">Contact met platform</span></span>
+              <span class="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-600 text-xs font-black text-white">Z</span>
+            </button>
+            <button type="button" class="zf-home-session-option flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-left" data-session="Platformhelp">
+              <span><span class="block text-sm font-bold text-slate-800">Platformhelp</span><span class="text-xs text-slate-500">Snel contact</span></span>
+              <span class="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-600 text-xs font-black text-white">P</span>
+            </button>
+            <button type="button" class="zf-home-session-option flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-left" data-session="Demo team">
+              <span><span class="block text-sm font-bold text-slate-800">Demo team</span><span class="text-xs text-slate-500">Voorbeeldsessie</span></span>
+              <span class="flex h-9 w-9 items-center justify-center rounded-full bg-cyan-600 text-xs font-black text-white">D</span>
+            </button>
+          </div>
+          <div class="mt-5 flex justify-end gap-2">
+            <button type="button" data-close-session class="rounded-xl bg-slate-100 px-4 py-2 text-sm font-bold text-slate-600">Annuleren</button>
+            <button type="button" id="zfHomeSessionStart" class="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white">Sessie starten</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      const close = () => modal.remove();
+      modal.querySelectorAll('[data-close-session]').forEach(button => button.addEventListener('click', close));
+      modal.querySelectorAll('.zf-home-session-option').forEach(button => {
+        button.addEventListener('click', () => {
+          modal.querySelectorAll('.zf-home-session-option').forEach(item => item.classList.remove('ring-2', 'ring-emerald-400'));
+          button.classList.add('ring-2', 'ring-emerald-400');
+          button.dataset.selected = 'true';
+        });
+      });
+      document.getElementById('zfHomeSessionStart').addEventListener('click', () => {
+        const selected = modal.querySelector('.zf-home-session-option[data-selected="true"]');
+        const name = selected ? selected.dataset.session : 'ZekerFlex support';
+        localStorage.setItem('zf_home_session_contact', name);
+        window.location.href = `communicatie.html?demo=bedrijf&from=werknemer&session=${encodeURIComponent(name)}`;
+      });
+    }
+    document.getElementById('startPlatformSession')?.addEventListener('click', openPlatformSessionModal);
+    document.getElementById('mobileStartPlatformSession')?.addEventListener('click', openPlatformSessionModal);
+    document.getElementById('heroStartPlatformSession')?.addEventListener('click', openPlatformSessionModal);
+
+    const languageTexts = {
+      nl: {
+        navShifts: 'Shifts zoeken',
+        heroTitle: 'Work to live.<br><span class="text-emerald-300">Werk op jouw manier.</span>',
+        heroText: 'Ervaar vrijheid zonder gedoe. Kies werk dat past bij jouw leven, verdien eerlijk en ontwikkel jezelf met iedere shift.',
+        heroShiftsLink: 'Bekijk beschikbare shifts',
+        heroWorkerLink: 'Start als werknemer'
+      },
+      en: {
+        navShifts: 'Find shifts',
+        heroTitle: 'Work to live.<br><span class="text-emerald-300">Work your way.</span>',
+        heroText: 'Enjoy freedom without the hassle. Choose work that fits your life, earn fairly and grow with every shift.',
+        heroShiftsLink: 'View available shifts',
+        heroWorkerLink: 'Start as a worker'
+      }
+    };
+    function setLanguage(language) {
+      const texts = languageTexts[language] || languageTexts.nl;
+      Object.entries(texts).forEach(([id, value]) => {
+        const element = document.getElementById(id);
+        if (element) element.innerHTML = value;
+      });
+      document.documentElement.lang = language;
+      localStorage.setItem('zekerflex_language', language);
+      const desktopLanguage = document.getElementById('languageSelect');
+      const mobileLanguage = document.getElementById('mobileLanguageSelect');
+      if (desktopLanguage) desktopLanguage.value = language;
+      if (mobileLanguage) mobileLanguage.value = language;
+    }
+    const savedLanguage = localStorage.getItem('zekerflex_language') || 'nl';
+    document.getElementById('languageSelect')?.addEventListener('change', (event) => setLanguage(event.target.value));
+    document.getElementById('mobileLanguageSelect')?.addEventListener('change', (event) => setLanguage(event.target.value));
+    setLanguage(savedLanguage);
+
+    const backToTop = document.getElementById('backToTop');
+    if (backToTop) {
+      window.addEventListener('scroll', () => {
+        const showButton = window.scrollY > 550;
+        backToTop.classList.toggle('hidden', !showButton);
+        requestAnimationFrame(() => {
+          backToTop.classList.toggle('translate-y-3', !showButton);
+          backToTop.classList.toggle('opacity-0', !showButton);
+          backToTop.classList.toggle('translate-y-0', showButton);
+          backToTop.classList.toggle('opacity-100', showButton);
+        });
+      });
+      backToTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    }
+
+    // SUPABASE CONFIGURATIE (Live verbonden)
+    const SUPABASE_URL = 'https://cfkzfdqlcfifrukjdvnj.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_KoGEquVbS_OIsoTWchG8Qw_Q6vJWJS8';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    function toggleMobileMenu() {
+      document.getElementById('mobileMenu').classList.toggle('hidden');
+      document.getElementById('menuIcon').classList.toggle('hidden');
+      document.getElementById('closeIcon').classList.toggle('hidden');
+    }
+
+    // 1. DATASET MET SHIFTS
+    let shiftsData = [];
+    const localShiftsData = [
+      {
+        id: 1,
+        title: "Bediening & Bar Crew",
+        company: "Grand Café De Unie",
+        category: "horeca",
+        categoryLabel: "Horeca & Events",
+        badgeColor: "bg-indigo-50 text-indigo-700",
+        rate: 18.50,
+        location: "Utrecht Centrum",
+        dateRaw: "2026-08-28",
+        dateDisplay: "Vrijdag 28 aug | 17:00 - 23:30 (6.5 uur)",
+        description: "Als barcrew ben je verantwoordelijk voor het inschenken van drankjes en het bedienen van gasten op het drukke terras. Ervaring met tappen is een pre!"
+      },
+      {
+        id: 2,
+        title: "Orderpicker & Sort",
+        company: "LogiHub BV",
+        category: "logistiek",
+        categoryLabel: "Logistiek",
+        badgeColor: "bg-blue-50 text-blue-700",
+        rate: 16.00,
+        location: "Amsterdam Westpoort",
+        dateRaw: "2026-08-29",
+        dateDisplay: "Zaterdag 29 aug | 08:00 - 16:30 (8 uur)",
+        description: "Helpen bij het verzamelen, sorteren en verpakken van orders in het hoofdmagazijn. Veiligheidsschoenen (S3) zijn verplicht."
+      },
+      {
+        id: 3,
+        title: "Winkelmedewerker Bijvullen",
+        company: "SuperStore Central",
+        category: "retail",
+        categoryLabel: "Retail & Winkels",
+        badgeColor: "bg-purple-50 text-purple-700",
+        rate: 15.20,
+        location: "Rotterdam Centrum",
+        dateRaw: "2026-08-28",
+        dateDisplay: "Vrijdag 28 aug | 07:00 - 12:00 (5 uur)",
+        description: "Ochtenddienst om de vakken aan te vullen voordat de winkel opengaat. Lekker vlot doorwerken in een gezellig team."
+      },
+      {
+        id: 4,
+        title: "Event Host / Hostess",
+        company: "Apex Events",
+        category: "horeca",
+        categoryLabel: "Horeca & Events",
+        badgeColor: "bg-indigo-50 text-indigo-700",
+        rate: 19.00,
+        location: "Eindhoven Strijp-S",
+        dateRaw: "2026-08-30",
+        dateDisplay: "Zondag 30 aug | 12:00 - 20:00 (8 uur)",
+        description: "Bezoekers verwelkomen, scannen van tickets en informeren van gasten tijdens het technofestival."
+      }
+    ];
+
+    // DOM Elementen
+    const shiftsGrid = document.getElementById('shiftsGrid');
+    const shiftCount = document.getElementById('shiftCount');
+    const noResults = document.getElementById('noResults');
+    const searchInput = document.getElementById('searchInput');
+    const categoryInput = document.getElementById('categoryInput');
+    const dateInput = document.getElementById('dateInput');
+    const resetBtn = document.getElementById('resetBtn');
+
+    async function fetchShiftsFromDatabase() {
+      shiftsGrid.innerHTML = '<p class="text-gray-500 col-span-2 text-center py-8">Shifts laden uit de database...</p>';
+
+      const { data, error } = await supabaseClient
+        .from('shifts')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Fout bij ophalen shifts:', error);
+        shiftsGrid.innerHTML = '<p class="text-red-500 col-span-2 text-center py-8">Kon shifts niet laden uit de database.</p>';
+        return;
+      }
+
+      shiftsData = data;
+      renderShifts(shiftsData);
+    }
+
+    // 2. FUNCTIE OM SHIFTS IN DE HTML TE TEKENEN
+    function renderShifts(shifts) {
+      shiftsGrid.innerHTML = '';
+      shiftCount.textContent = `(${shifts.length} resultaten)`;
+
+      if (shifts.length === 0) {
+        noResults.classList.remove('hidden');
+        return;
+      } else {
+        noResults.classList.add('hidden');
+      }
+
+      shifts.forEach(shift => {
+        const isVervuld = shift.status === 'vervuld';
+        const safeTitle = shift.title.replace(/'/g, "\\'");
+        const safeCompany = shift.company.replace(/'/g, "\\'");
+        const safeLocation = shift.location.replace(/'/g, "\\'");
+        const safeDate = shift.date_display.replace(/'/g, "\\'");
+        const safeDesc = shift.description.replace(/'/g, "\\'").replace(/\n/g, ' ');
+
+        const cardHtml = `
+          <article class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition flex flex-col justify-between ${isVervuld ? 'opacity-70 bg-gray-50' : ''}">
+            <div>
+              <div class="flex justify-between items-start mb-4">
+                <span class="inline-block ${shift.badge_color} text-xs font-semibold px-3 py-1 rounded-full">${shift.category_label}</span>
+                <span class="${isVervuld ? 'bg-gray-200 text-gray-700' : 'bg-emerald-50 text-emerald-700'} text-xs font-bold px-3 py-1 rounded-full">${isVervuld ? '🔒 Vervuld' : '🟢 Open'}</span>
+              </div>
+              <h3 class="text-lg font-bold text-gray-900 mb-1">${shift.title}</h3>
+              <p class="text-sm text-gray-500 mb-4">${shift.company}</p>
+
+              <div class="space-y-2 text-sm text-gray-600 mb-6">
+                <div class="flex items-center gap-2">
+                  <span>📍</span>
+                  <span>${shift.location}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span>📅</span>
+                  <span>${shift.date_display}</span>
+                </div>
+              </div>
+            </div>
+
+            ${isVervuld ? `
+              <button type="button" disabled class="w-full bg-gray-200 text-gray-500 cursor-not-allowed text-sm font-medium py-2.5 rounded-xl">
+                Shift is vervuld
+              </button>
+            ` : `
+              <button type="button" onclick="openModal(${shift.id}, '${safeTitle}', '${safeCompany}', '€ ${Number(shift.rate).toFixed(2).replace('.', ',')} / uur', '${safeLocation}', '${safeDate}', '${safeDesc}')" class="w-full bg-gray-900 hover:bg-black text-white text-sm font-medium py-2.5 rounded-xl transition">
+                Bekijk details & Reageer
+              </button>
+            `}
+          </article>
+        `;
+        shiftsGrid.innerHTML += cardHtml;
+      });
+    }
+
+    // 3. FILTER LOGICA
+    function filterShifts() {
+      const query = searchInput.value.toLowerCase().trim();
+      const selectedCategory = categoryInput.value;
+      const selectedDate = dateInput.value;
+
+      const filtered = shiftsData.filter(shift => {
+        const matchesSearch = shift.title.toLowerCase().includes(query) ||
+                              shift.company.toLowerCase().includes(query) ||
+                              shift.location.toLowerCase().includes(query);
+                              
+        const matchesCategory = selectedCategory === '' || shift.category === selectedCategory;
+        const matchesDate = selectedDate === '' || shift.date_raw === selectedDate;
+
+        return matchesSearch && matchesCategory && matchesDate;
+      });
+
+      renderShifts(filtered);
+    }
+
+    // 4. EVENT LISTENERS (Live filteren bij typen/selecteren)
+    if (searchInput && categoryInput && dateInput && resetBtn) {
+      searchInput.addEventListener('input', filterShifts);
+      categoryInput.addEventListener('change', filterShifts);
+      dateInput.addEventListener('change', filterShifts);
+
+      resetBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        categoryInput.value = '';
+        dateInput.value = '';
+        renderShifts(shiftsData);
+      });
+    }
+
+    // 5. MODAL LOGICA
+    const modal = document.getElementById('shiftModal');
+    const modalContainer = document.getElementById('modalContainer');
+
+    function openModal(shiftId, title, company, rate, location, date, desc) {
+      document.getElementById('modalShiftId').value = shiftId;
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalCompany').textContent = company;
+      document.getElementById('modalRate').textContent = rate;
+      document.getElementById('modalLocation').textContent = location;
+      document.getElementById('modalDate').textContent = date;
+      document.getElementById('modalDesc').textContent = desc;
+      document.getElementById('applyForm').reset();
+
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        modalContainer.classList.remove('scale-95');
+        modalContainer.classList.add('scale-100');
+      }, 10);
+    }
+
+    function closeModal() {
+      modal.classList.add('opacity-0');
+      modalContainer.classList.remove('scale-100');
+      modalContainer.classList.add('scale-95');
+      setTimeout(() => {
+        modal.classList.add('hidden');
+      }, 200);
+    }
+
+    async function handleApplySubmit(event) {
+      event.preventDefault();
+
+      const submitButton = document.getElementById('submitApplyBtn');
+      submitButton.disabled = true;
+      submitButton.textContent = 'Sollicitatie wordt verzonden...';
+
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (!user || user.user_metadata?.role === 'opdrachtgever') {
+        alert('Log eerst in als werknemer om te solliciteren.');
+        submitButton.disabled = false;
+        submitButton.textContent = '🚀 Direct Solliciteren';
+        return;
+      }
+
+      const { error } = await supabaseClient
+        .from('applications')
+        .insert([{
+          shift_id: document.getElementById('modalShiftId').value,
+          applicant_user_id: user.id,
+          applicant_name: document.getElementById('applicantName').value,
+          applicant_email: document.getElementById('applicantEmail').value,
+          applicant_phone: document.getElementById('applicantPhone').value,
+          motivation: document.getElementById('applicantMotivation').value
+        }]);
+
+      if (error) {
+        alert('Er ging iets mis bij het versturen van je sollicitatie: ' + error.message);
+        submitButton.disabled = false;
+        submitButton.textContent = '🚀 Direct Solliciteren';
+        return;
+      }
+
+      alert('Je sollicitatie is succesvol verstuurd!');
+      document.getElementById('applyForm').reset();
+      closeModal();
+      submitButton.disabled = false;
+      submitButton.textContent = '🚀 Direct Solliciteren';
+    }
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+
+    // Laad de shifts bij het opstarten
+    if (shiftsGrid) fetchShiftsFromDatabase();
+  </script>
+  <style>
+    @keyframes zekerflex-marquee { from { transform: translateX(0); } to { transform: translateX(-24%); } }
+    .stats-marquee { animation: zekerflex-marquee 24s linear infinite; }
+    .stats-marquee:hover { animation-play-state: paused; }
+    .zf-spring-top {
+      animation: zfSpringTop .9s cubic-bezier(.2,1.2,.3,1);
+      transform-origin: top center;
+    }
+    @keyframes zfSpringTop {
+      0% { opacity: 0; transform: translateY(-16px) scaleY(.96); }
+      60% { opacity: 1; transform: translateY(5px) scaleY(1.02); }
+      100% { opacity: 1; transform: translateY(0) scaleY(1); }
+    }
+  </style>
+
+</body>
+</html>

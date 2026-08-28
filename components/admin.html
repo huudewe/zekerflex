@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <link rel="stylesheet" href="zf-atmosphere.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ZekerFlex - Admin</title>
+  <style>
+    :root { --ink:#152238; --muted:#64748b; --line:#dbe4ec; --brand:#0f766e; --bg:#f4f7f8; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font:14px system-ui,sans-serif; }
+    main { width:min(1200px,100%); margin:auto; padding:32px 20px 60px; }
+    h1 { margin:0; font-size:30px; }
+    .muted { color:var(--muted); }
+    .panel { margin-top:20px; padding:20px; border:1px solid var(--line); border-radius:10px; background:#fff; }
+    .stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+    .stat { padding:16px; border:1px solid var(--line); border-radius:8px; background:#f8fbfb; }
+    .stat strong { display:block; margin-top:6px; font-size:26px; }
+    .admin-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:18px; }
+    button, input, select { min-height:38px; border:1px solid var(--line); border-radius:7px; background:#fff; color:var(--ink); padding:8px 11px; }
+    button { cursor:pointer; font-weight:700; }
+    button:hover { border-color:var(--brand); color:var(--brand); }
+    .toolbar { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
+    .toolbar input { flex:1 1 260px; }
+    table { width:100%; border-collapse:collapse; }
+    th,td { padding:11px 8px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { color:var(--muted); font-size:12px; text-transform:uppercase; }
+    code { word-break:break-all; color:#0f766e; }
+    @media(max-width:700px) { .stats { grid-template-columns:repeat(2,minmax(0,1fr)); } .panel { overflow:auto; } table { min-width:620px; } }
+    body { background: #eef3f7; font-family: "Trebuchet MS", "Segoe UI", sans-serif; }
+    main { width: min(1440px, 100%); padding: 28px 28px 70px; }
+    .admin-shell { display:grid; grid-template-columns:220px minmax(0,1fr); gap:24px; margin-top:24px; }
+    .admin-nav { align-self:start; position:sticky; top:20px; padding:14px; border:1px solid var(--line); border-radius:16px; background:#102044; box-shadow:0 16px 35px #10204422; }
+    .admin-nav strong { display:block; padding:12px; color:#fff; font-size:16px; }
+    .admin-nav button { display:block; width:100%; margin-top:6px; border:0; background:transparent; color:#c9d5ef; text-align:left; }
+    .admin-nav button.active, .admin-nav button:hover { background:#ffffff1c; color:#fff; }
+    .admin-view { display:none; }
+    .admin-view.active { display:block; }
+    .admin-kicker { margin:0 0 5px; color:#0f766e; font-size:12px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
+    .admin-toolbar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:0 0 18px; }
+    .admin-toolbar input { flex:1 1 260px; }
+    .admin-toolbar button.primary { border-color:#0f766e; background:#0f766e; color:#fff; }
+    .admin-table-wrap { overflow:auto; }
+    .admin-table-wrap table { min-width:760px; }
+    .admin-table-wrap tr[data-state="blocked"] { opacity:.55; }
+    .admin-badge { display:inline-flex; padding:4px 8px; border-radius:999px; background:#e4f7ef; color:#13795b; font-size:11px; font-weight:800; }
+    .admin-badge.warn { background:#fff2d8; color:#a35d00; }
+    .admin-badge.danger { background:#ffe4e8; color:#b4233b; }
+    .admin-action { min-height:30px; padding:5px 8px; font-size:12px; }
+    .admin-empty { padding:30px 10px; color:var(--muted); text-align:center; }
+    .admin-chart { display:grid; grid-template-columns:repeat(7,1fr); align-items:end; gap:10px; height:150px; padding:18px 10px 0; }
+    .admin-chart i { display:block; min-height:10px; border-radius:8px 8px 2px 2px; background:linear-gradient(#18b8a6,#0f766e); }
+    .admin-chart span { display:grid; gap:6px; color:var(--muted); font-size:11px; text-align:center; }
+    .tool-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+    .tool-card { display:grid; gap:8px; padding:16px; border:1px solid var(--line); border-radius:12px; background:#f8fbfc; }
+    .tool-card strong { font-size:14px; }
+    .tool-card button { width:max-content; }
+    .capability-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+    .capability-card { padding:16px; border:1px solid var(--line); border-radius:12px; background:#f8fbfc; }
+    .capability-card h3 { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:0 0 10px; font-size:15px; }
+    .capability-card ul { display:grid; gap:7px; margin:0; padding:0; list-style:none; }
+    .capability-action { width:100%; min-height:0; padding:0; border:0; background:transparent; color:var(--muted); font:inherit; font-weight:400; line-height:1.45; text-align:left; }
+    .capability-action::before { margin-right:7px; color:#0f766e; content:'>'; font-weight:800; }
+    .capability-action:hover { color:#0f766e; }
+    .scope-badge { flex:none; padding:4px 8px; border-radius:999px; background:#e4f7ef; color:#13795b; font-size:10px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; }
+    .admin-modal { position:fixed; inset:0; z-index:100; display:grid; place-items:center; padding:20px; background:#0b172c88; }
+    .admin-modal-card { width:min(560px,100%); max-height:90vh; overflow:auto; padding:24px; border-radius:16px; background:#fff; box-shadow:0 24px 70px #0b172c44; }
+    .admin-modal-head { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .admin-modal-head button { min-width:38px; padding:4px; }
+    .analytics-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+    .analytics-card { padding:16px; border:1px solid var(--line); border-radius:10px; background:#f8fbfc; }
+    .analytics-card strong { display:block; margin-top:6px; font-size:25px; }
+    .live-dot { display:inline-block; width:8px; height:8px; margin-right:6px; border-radius:50%; background:#13a66f; box-shadow:0 0 0 4px #13a66f22; }
+    .live-feed { display:grid; gap:8px; margin:0; padding:0; list-style:none; }
+    .live-feed li { display:flex; justify-content:space-between; gap:12px; padding:10px 0; border-bottom:1px solid var(--line); }
+    .analytics-bars { display:grid; gap:10px; }
+    .analytics-bar { display:grid; grid-template-columns:minmax(110px, .6fr) 1fr auto; align-items:center; gap:10px; }
+    .analytics-bar i { display:block; height:10px; border-radius:10px; background:#13b8a6; }
+    .legacy-admin-notice { display:block; margin:40px auto; width:min(720px,100%); padding:28px; border:1px solid #f2c27b; border-radius:12px; background:#fffaf0; color:#5b3b08; box-shadow:0 16px 40px #15223814; }
+    .legacy-admin-notice h1 { margin:0 0 10px; }
+    .legacy-admin-notice a { display:inline-block; margin-top:16px; color:#0f766e; font-weight:800; }
+    body > #app { display:none !important; }
+    @media(max-width:900px) { .admin-shell { grid-template-columns:1fr; } .admin-nav { position:static; display:flex; overflow:auto; gap:6px; } .admin-nav strong { display:none; } .admin-nav button { min-width:max-content; } .tool-grid, .capability-grid, .analytics-grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <section class="legacy-admin-notice" aria-labelledby="legacyAdminTitle">
+    <h1 id="legacyAdminTitle">Deze oude adminpagina is buiten gebruik</h1>
+    <p>De lokale demo-admin is verwijderd uit de productieflow. Gebruik de echte Supabase-admin in de Next.js-app via <strong>/admin</strong>.</p>
+    <p>Die omgeving werkt met echte accounts, klussen, aanmeldingen en realtime database-updates.</p>
+    <a href="http://localhost:3000/admin">Open verbonden admin</a>
+  </section>
+  <main id="app" hidden>
+    <header><p class="muted">ZekerFlex beheer</p><h1>Admin overzicht</h1><p class="muted">Demo-activiteiten, opgeslagen gegevens en systeemlogs.</p><div class="admin-actions"><button id="refreshButton" type="button">Verversen</button><button id="clearDemoButton" type="button">Demo-data wissen</button><button id="exportLogsButton" type="button">Logs exporteren</button></div></header>
+    <section class="stats" aria-label="Statistieken">
+      <div class="stat">Demo-klussen<strong id="shiftCount">0</strong></div>
+      <div class="stat">Demo-reacties<strong id="applicationCount">0</strong></div>
+      <div class="stat">Lokale logitems<strong id="logCount">0</strong></div>
+      <div class="stat">Database status<strong id="databaseStatus">Laden...</strong></div>
+    </section>
+    <div class="admin-shell">
+      <nav class="admin-nav" aria-label="Adminsecties">
+        <strong>ZekerFlex Admin</strong>
+        <button type="button" class="active" data-admin-tab="overview">Overzicht</button>
+        <button type="button" data-admin-tab="moderation">Moderatie</button>
+        <button type="button" data-admin-tab="support">Support inbox</button>
+        <button type="button" data-admin-tab="data">Data & veiligheid</button>
+        <button type="button" data-admin-tab="analytics">Live & analytics</button>
+      </nav>
+      <div>
+        <section class="admin-view active" data-admin-view="overview">
+          <p class="admin-kicker">Operationeel overzicht</p>
+          <div class="panel" style="margin-top:0"><div class="admin-toolbar"><input id="globalAdminSearch" type="search" placeholder="Zoek door klussen, reacties en logs" aria-label="Zoek in alle admingegevens"><select id="globalAdminRange" aria-label="Periode"><option value="7">Laatste 7 dagen</option><option value="30">Laatste 30 dagen</option><option value="all">Alles</option></select><button type="button" class="primary" id="adminRefreshAll">Verversen</button></div><div class="admin-chart" id="adminActivityChart" aria-label="Activiteit per dag"></div></div>
+          <section class="panel"><h2>Recente activiteit</h2><div id="adminActivityTable" class="admin-table-wrap"></div></section>
+          <section class="panel"><p class="admin-kicker">Platform control center</p><h2>Beheergebieden</h2><p class="muted">Kies een afzonderlijke admin-optie om de module te openen.</p><div class="capability-grid">
+            <article class="capability-card"><h3>Gebruikersbeheer & verificatie <span class="scope-badge">10 opties</span></h3><ul><li><button type="button" class="capability-action" data-module="Freelancers, opdrachtgevers en profielen">Freelancers, opdrachtgevers, rollen, rechten en profielen goedkeuren</button></li><li><button type="button" class="capability-action" data-module="KYC/AML, KvK en BTW">KYC/AML-checks, KvK- en BTW-validatie en modelovereenkomsten</button></li><li><button type="button" class="capability-action" data-module="Leeftijdsgrenzen en blokkeerlijst">Leeftijdsgrenzen, blokkeerlijst en accountstatus</button></li></ul></article>
+            <article class="capability-card"><h3>Klussenbeheer & moderatie <span class="scope-badge">5 opties</span></h3><ul><li><button type="button" class="capability-action" data-module="Klussen aanmaken en modereren">Klussen aanmaken, goedkeuren, verwijderen en statusbewaking</button></li><li><button type="button" class="capability-action" data-module="Spoedklussen, categorieën en geofencing">Spoedklussen, categorieën en geofencing beheren</button></li></ul></article>
+            <article class="capability-card"><h3>Matchmaking & algoritmes <span class="scope-badge">4 opties</span></h3><ul><li><button type="button" class="capability-action" data-module="Handmatige en automatische matching">Handmatige toewijzing en automatische koppelingen</button></li><li><button type="button" class="capability-action" data-module="Filters, zoektools en wachtlijsten">Filters, zoektools en wachtlijsten</button></li></ul></article>
+            <article class="capability-card"><h3>Financieel systeem & facturatie <span class="scope-badge">12 opties</span></h3><ul><li><button type="button" class="capability-action" data-module="Urenstaten en declaraties">Urenstaten accorderen, urencorrecties, declaraties en onkosten</button></li><li><button type="button" class="capability-action" data-module="iDEAL, Stripe en Adyen">PSP-koppelingen zoals iDEAL, Stripe en Adyen; automatische uitbetalingen</button></li><li><button type="button" class="capability-action" data-module="Facturen en boekhoud-APIs">Factuur- en creditnota-engine, platformcommissies en boekhoud-APIs zoals Exact en Moneybird</button></li><li><button type="button" class="capability-action" data-module="Cashflow en financiering">Cashflow forecasting, factoring, debiteurenbeheer, btw-verlegging en micro-leningen</button></li></ul></article>
+            <article class="capability-card"><h3>Wet- & regelgeving <span class="scope-badge">6 opties</span></h3><ul><li><button type="button" class="capability-action" data-module="Loonheffingen en Wet DBA">Loonheffingen en Wet DBA-risico's</button></li><li><button type="button" class="capability-action" data-module="Arbeidstijden en belastingregels">Arbeidstijdenwet, minderjarigenregels, OSS-btw en bronbelasting</button></li></ul></article>
+            <article class="capability-card"><h3>Support & geschillen <span class="scope-badge">5 opties</span></h3><ul><li><button type="button" class="capability-action" data-module="Disputes en ticketing">Dispute management voor urenconflicten en ticketing</button></li><li><button type="button" class="capability-action" data-module="Chatmoderatie en SLA">Chatmoderatie, SLA-monitoring en interne notities</button></li></ul></article>
+            <article class="capability-card"><h3>Marketing & communicatie <span class="scope-badge">6 opties</span></h3><ul><li><button type="button" class="capability-action" data-module="Campagnes en sjablonen">Push-notificaties, e-mailcampagnes, sms/WhatsApp en sjablonen</button></li><li><button type="button" class="capability-action" data-module="Referral, loyaliteit en experimenten">Referral-programma's, loyaliteitsbeloningen en A/B-testing</button></li></ul></article>
+            <article class="capability-card"><h3>Data analytics & BI <span class="scope-badge">5 opties</span></h3><ul><li><button type="button" class="capability-action" data-module="Realtime KPI-dashboard">Realtime KPI's zoals omzet, GMV, conversiecijfers en churn rate</button></li><li><button type="button" class="capability-action" data-module="Rapportages en exports">Financiële rapportages en exportfuncties</button></li></ul></article>
+            <article class="capability-card"><h3>Systeembeheer & beveiliging <span class="scope-badge">10 opties</span></h3><ul><li><button type="button" class="capability-action" data-module="RBAC, audit logs en 2FA">RBAC-rollen en rechten, audit logs, IP-whitelisting en 2FA</button></li><li><button type="button" class="capability-action" data-module="AVG/GDPR en feature flags">AVG/GDPR-dataverwijdering, feature flags en kill switches</button></li><li><button type="button" class="capability-action" data-module="Impersonatie, error tracking en backups">Impersonatie-modus, error tracking en database backups</button></li></ul></article>
+            <article class="capability-card"><h3>Data science & automatisering <span class="scope-badge">7 opties</span></h3><ul><li><button type="button" class="capability-action" data-module="Voorspelling en fraudedetectie">Vraagvoorspelling, churn-predictie en fraudedetectie</button></li><li><button type="button" class="capability-action" data-module="Identity en liveness checks">Synthetic identity checks en biometrische liveness checks</button></li><li><button type="button" class="capability-action" data-module="Automation, liquidity en event ledger">No-code automation builder, high-frequency liquidity heatmaps en cryptografische event ledgers</button></li></ul></article>
+          </div><p id="moduleStatus" class="muted" role="status">Nog geen module geselecteerd.</p></section>
+        </section>
+        <section class="admin-view" data-admin-view="moderation">
+          <p class="admin-kicker">Gebruikersveiligheid</p>
+          <section class="panel" style="margin-top:0"><div class="admin-toolbar"><input id="moderationSearch" type="search" placeholder="Zoek gebruiker of bedrijf" aria-label="Zoek gebruiker"><select id="moderationFilter" aria-label="Moderatiestatus"><option value="all">Alle statussen</option><option value="review">Controleren</option><option value="blocked">Geblokkeerd</option></select></div><div id="moderationTable" class="admin-table-wrap"></div></section>
+        </section>
+        <section class="admin-view" data-admin-view="support">
+          <p class="admin-kicker">Support & opvolging</p>
+          <section class="panel" style="margin-top:0"><div class="admin-toolbar"><input id="supportSearch" type="search" placeholder="Zoek ticket of bezoeker" aria-label="Zoek supportticket"><select id="supportFilter" aria-label="Filter support"><option value="all">Alle tickets</option><option value="open">Open</option><option value="closed">Gesloten</option></select></div><div id="supportTable" class="admin-table-wrap"></div></section>
+        </section>
+        <section class="admin-view" data-admin-view="data">
+          <p class="admin-kicker">Beheer met controle</p>
+          <section class="panel" style="margin-top:0"><h2>Data-tools</h2><div class="tool-grid"><div class="tool-card"><strong>Volledige demo-back-up</strong><span class="muted">Exporteer alle zf_-gegevens inclusief timestamp.</span><button type="button" id="backupAllButton">Back-up downloaden</button></div><div class="tool-card"><strong>Demo-data importeren</strong><span class="muted">Herstel een eerder geëxporteerde JSON-back-up.</span><button type="button" id="restoreAllButton">JSON kiezen</button><input id="restoreAllInput" type="file" accept="application/json" hidden></div><div class="tool-card"><strong>Opslag controleren</strong><span class="muted">Controleer corrupte JSON-items zonder data te verwijderen.</span><button type="button" id="storageAuditButton">Audit uitvoeren</button></div></div><p id="dataToolStatus" class="muted" role="status"></p></section>
+        </section>
+        <section class="admin-view" data-admin-view="analytics">
+          <p class="admin-kicker">Live platform intelligence</p>
+          <section class="panel" style="margin-top:0"><div class="admin-toolbar"><div><h2 style="margin:0"><span class="live-dot"></span>Live monitoring</h2><p class="muted" style="margin:5px 0 0">Bezoekers, keuzes en aanmeldingen in één overzicht.</p></div><button type="button" class="primary" id="analyticsRefreshButton">Nu verversen</button><label style="display:flex;align-items:center;gap:8px"><input id="analyticsAutoRefresh" type="checkbox" checked> Auto-update</label></div><div class="analytics-grid"><div class="analytics-card">Bezoekers nu<strong id="liveVisitorCount">0</strong></div><div class="analytics-card">Aanmeldingen vandaag<strong id="todayApplicationCount">0</strong></div><div class="analytics-card">Meest gekozen klus<strong id="topJobName">-</strong></div><div class="analytics-card">Topregio<strong id="topRegionName">-</strong></div></div></section>
+          <div class="tool-grid"><section class="panel"><h2>Live bezoekers</h2><ul id="liveVisitorFeed" class="live-feed"></ul></section><section class="panel"><h2>Meest gekozen klussen</h2><div id="topJobsList" class="analytics-bars"></div></section></div>
+          <div class="tool-grid"><section class="panel"><h2>Aanmeldingen per regio</h2><div id="regionList" class="analytics-bars"></div></section><section class="panel"><h2>Verdeling aanmeldingen</h2><div id="genderList" class="analytics-bars"></div></section></div>
+          <section class="panel"><h2>Beheer live data</h2><div class="admin-toolbar"><button type="button" id="simulateVisitorButton">Bezoeker simuleren</button><button type="button" id="simulateApplicationButton">Aanmelding simuleren</button><button type="button" id="exportAnalyticsButton">Analytics exporteren</button></div><p id="analyticsStatus" class="muted" role="status">Live data is lokaal geladen.</p></section>
+        </section>
+      </div>
+    </div>
+    <section class="panel"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px"><h2>Demo-klussen</h2><button id="exportButton" type="button">Export JSON</button></div><div class="toolbar"><input id="adminSearch" type="search" placeholder="Zoek klus of bedrijf" aria-label="Zoek klus of bedrijf"></div><div id="shiftsTable" class="muted">Laden...</div></section>
+    <section class="panel"><div class="toolbar"><h2 style="margin:0;flex:1">Demo-reacties</h2><select id="applicationStatusFilter" aria-label="Filter reacties"><option value="all">Alle statussen</option><option value="In behandeling">In behandeling</option><option value="Aangenomen">Aangenomen</option><option value="Afgewezen">Afgewezen</option></select></div><div id="applicationsTable" class="muted">Laden...</div></section>
+    <section class="panel"><h2>Lokale logs</h2><div id="logsTable" class="muted">Laden...</div></section>
+  </main>
+  <script>
+    const ADMIN_KEY = 'zf-admin-2026';
+    const params = new URLSearchParams(location.search);
+    const app = document.getElementById('app');
+    if (params.has('key') && params.get('key') !== ADMIN_KEY) {
+      document.body.innerHTML = '<main><h1>Pagina niet gevonden</h1><p class="muted">Deze pagina is niet beschikbaar.</p></main>';
+    } else {
+      app.hidden = false;
+      const read = (key) => { try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch { return []; } };
+      const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[char]));
+      function renderAdmin() { const shifts = read('zf_demo_shifts'); const applications = read('zf_demo_applications'); const logs = Object.keys(localStorage).filter((key) => key.startsWith('zf_')).map((key) => ({ key, value: localStorage.getItem(key) })).slice(0, 100); const search = document.getElementById('adminSearch').value.toLowerCase(); const status = document.getElementById('applicationStatusFilter').value; const visibleShifts = shifts.filter((shift) => !search || `${shift.title} ${shift.company}`.toLowerCase().includes(search)); const visibleApplications = applications.filter((item) => status === 'all' || item.status === status); document.getElementById('shiftCount').textContent = shifts.length; document.getElementById('applicationCount').textContent = applications.length; document.getElementById('logCount').textContent = logs.length; document.getElementById('shiftsTable').innerHTML = visibleShifts.length ? `<table><thead><tr><th>Titel</th><th>Bedrijf</th><th>Datum</th><th>Reacties</th></tr></thead><tbody>${visibleShifts.map((shift) => `<tr><td>${esc(shift.title)}</td><td>${esc(shift.company)}</td><td>${esc(shift.date_display || shift.date_raw)}</td><td>${Number(shift.applications_count || 0)}</td></tr>`).join('')}</tbody></table>` : '<p class="muted">Geen klussen gevonden.</p>'; document.getElementById('applicationsTable').innerHTML = visibleApplications.length ? `<table><thead><tr><th>Klus</th><th>Werknemer</th><th>Status</th><th>Motivatie</th></tr></thead><tbody>${visibleApplications.map((item) => `<tr><td>${esc(item.shifts?.title || item.shift_id)}</td><td>${esc(item.applicant_name || 'Demo werknemer')}</td><td>${esc(item.status)}</td><td>${esc(item.motivation || 'Geen motivatie')}</td></tr>`).join('')}</tbody></table>` : '<p class="muted">Geen reacties gevonden.</p>'; document.getElementById('logsTable').innerHTML = logs.length ? `<table><thead><tr><th>Sleutel</th><th>Waarde</th></tr></thead><tbody>${logs.map((log) => `<tr><td><code>${esc(log.key)}</code></td><td><code>${esc(log.value)}</code></td></tr>`).join('')}</tbody></table>` : '<p class="muted">Geen lokale logs.</p>'; document.getElementById('databaseStatus').textContent = 'Demo lokaal'; }
+      renderAdmin();
+      document.getElementById('refreshButton').addEventListener('click', renderAdmin);
+      document.getElementById('adminSearch').addEventListener('input', renderAdmin);
+      document.getElementById('applicationStatusFilter').addEventListener('change', renderAdmin);
+      document.getElementById('clearDemoButton').addEventListener('click', () => { if (!window.confirm('Alle demo-klussen en reacties wissen?')) return; localStorage.removeItem('zf_demo_shifts'); localStorage.removeItem('zf_demo_applications'); renderAdmin(); });
+      document.getElementById('exportLogsButton').addEventListener('click', () => { const logs = Object.keys(localStorage).filter((key) => key.startsWith('zf_')).map((key) => ({ key, value: localStorage.getItem(key) })); const blob = new Blob([JSON.stringify(logs, null, 2)], { type: 'application/json' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'zekerflex-logs.json'; link.click(); URL.revokeObjectURL(link.href); });
+      document.getElementById('exportButton').addEventListener('click', () => { const payload = { shifts: read('zf_demo_shifts'), applications: read('zf_demo_applications'), exported_at: new Date().toISOString() }; const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'zekerflex-demo-export.json'; link.click(); URL.revokeObjectURL(link.href); });
+    }
+  </script>
+  <script>
+    if (!params.has('key') || params.get('key') === ADMIN_KEY) {
+      const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[char]));
+      const readAdminState = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); } catch { return fallback; } };
+      const writeAdminAudit = (entry) => { const audit = readAdminState('zf_admin_audit', []); audit.unshift({ ...entry, timestamp: new Date().toISOString() }); localStorage.setItem('zf_admin_audit', JSON.stringify(audit.slice(0, 100))); };
+      const moderationRecords = [
+        { id: 'usr-001', name: 'Sophie de Vries', type: 'Freelancer', status: 'review', detail: 'Profiel wacht op identiteitscontrole' },
+        { id: 'usr-002', name: 'Bistro de Markt', type: 'Opdrachtgever', status: 'approved', detail: 'KvK en BTW gevalideerd' },
+        { id: 'usr-003', name: 'Flex Support BV', type: 'Opdrachtgever', status: 'blocked', detail: 'Handmatige blokkade actief' }
+      ];
+      const supportTickets = [
+        { id: 'ZF-1042', visitor: 'Sophie de Vries', subject: 'Urenstaat klopt niet', status: 'open', priority: 'Hoog' },
+        { id: 'ZF-1041', visitor: 'Bistro de Markt', subject: 'Factuur downloaden', status: 'open', priority: 'Normaal' },
+        { id: 'ZF-1038', visitor: 'Mark Jansen', subject: 'Profiel bijgewerkt', status: 'closed', priority: 'Laag' }
+      ];
+      const savedModeration = readAdminState('zf_admin_moderation', null); if (savedModeration) moderationRecords.splice(0, moderationRecords.length, ...savedModeration);
+      const savedSupport = readAdminState('zf_admin_support', null); if (savedSupport) supportTickets.splice(0, supportTickets.length, ...savedSupport);
+      const liveVisitors = readAdminState('zf_live_visitors', [{ name: 'Anoniem', page: 'Beschikbare shifts', region: 'Noord-Brabant', joined: new Date(Date.now() - 240000).toISOString() }, { name: 'Anoniem', page: 'Profiel bekijken', region: 'Zuid-Holland', joined: new Date(Date.now() - 520000).toISOString() }]);
+      const liveApplications = readAdminState('zf_live_applications', [{ job: 'Barista ochtendshift', region: 'Noord-Brabant', gender: 'Vrouw' }, { job: 'Barista ochtendshift', region: 'Noord-Brabant', gender: 'Man' }, { job: 'Event host avondshift', region: 'Groningen', gender: 'Vrouw' }, { job: 'Pakketbezorger', region: 'Zuid-Holland', gender: 'Man' }]);
+      const downloadJson = (filename, payload) => { const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = filename; link.click(); URL.revokeObjectURL(link.href); };
+      const statusLabel = (status) => ({ review: 'Controleren', approved: 'Goedgekeurd', blocked: 'Geblokkeerd', open: 'Open', closed: 'Gesloten' }[status] || status);
+      const statusClass = (status) => status === 'blocked' ? 'danger' : (status === 'review' || status === 'open' ? 'warn' : '');
+      const renderModeration = () => { const search = document.getElementById('moderationSearch').value.toLowerCase(); const filter = document.getElementById('moderationFilter').value; const rows = moderationRecords.filter((record) => (!search || `${record.name} ${record.type} ${record.detail}`.toLowerCase().includes(search)) && (filter === 'all' || record.status === filter)); document.getElementById('moderationTable').innerHTML = rows.length ? `<table><thead><tr><th>Gebruiker</th><th>Type</th><th>Status</th><th>Actie</th></tr></thead><tbody>${rows.map((record) => `<tr data-state="${esc(record.status)}"><td><strong>${esc(record.name)}</strong><br><span class="muted">${esc(record.detail)}</span></td><td>${esc(record.type)}</td><td><span class="admin-badge ${statusClass(record.status)}">${esc(statusLabel(record.status))}</span></td><td><button type="button" class="admin-action" data-moderation-action="${record.id}">${record.status === 'blocked' ? 'Vrijgeven' : record.status === 'review' ? 'Goedkeuren' : 'Blokkeren'}</button></td></tr>`).join('')}</tbody></table>` : '<p class="admin-empty">Geen gebruikers gevonden.</p>'; document.querySelectorAll('[data-moderation-action]').forEach((button) => button.addEventListener('click', () => { const record = moderationRecords.find((item) => item.id === button.dataset.moderationAction); record.status = record.status === 'blocked' ? 'approved' : record.status === 'review' ? 'approved' : 'blocked'; localStorage.setItem('zf_admin_moderation', JSON.stringify(moderationRecords)); writeAdminAudit({ domain: 'Gebruikersbeheer', action: `${record.name}: ${statusLabel(record.status)}` }); renderModeration(); })); };
+      const renderSupport = () => { const search = document.getElementById('supportSearch').value.toLowerCase(); const filter = document.getElementById('supportFilter').value; const rows = supportTickets.filter((ticket) => (!search || `${ticket.id} ${ticket.visitor} ${ticket.subject}`.toLowerCase().includes(search)) && (filter === 'all' || ticket.status === filter)); document.getElementById('supportTable').innerHTML = rows.length ? `<table><thead><tr><th>Ticket</th><th>Bezoeker</th><th>Prioriteit</th><th>Status</th><th>Actie</th></tr></thead><tbody>${rows.map((ticket) => `<tr><td><strong>${esc(ticket.id)}</strong><br>${esc(ticket.subject)}</td><td>${esc(ticket.visitor)}</td><td>${esc(ticket.priority)}</td><td><span class="admin-badge ${statusClass(ticket.status)}">${esc(statusLabel(ticket.status))}</span></td><td><button type="button" class="admin-action" data-support-action="${ticket.id}">${ticket.status === 'closed' ? 'Heropenen' : 'Sluiten'}</button></td></tr>`).join('')}</tbody></table>` : '<p class="admin-empty">Geen tickets gevonden.</p>'; document.querySelectorAll('[data-support-action]').forEach((button) => button.addEventListener('click', () => { const ticket = supportTickets.find((item) => item.id === button.dataset.supportAction); ticket.status = ticket.status === 'closed' ? 'open' : 'closed'; localStorage.setItem('zf_admin_support', JSON.stringify(supportTickets)); writeAdminAudit({ domain: 'Support', action: `${ticket.id}: ${statusLabel(ticket.status)}` }); renderSupport(); })); };
+      const renderAnalytics = () => { const countBy = (key) => liveApplications.reduce((result, item) => { result[item[key]] = (result[item[key]] || 0) + 1; return result; }, {}); const jobs = countBy('job'); const regions = countBy('region'); const genders = countBy('gender'); const sorted = (values) => Object.entries(values).sort((a, b) => b[1] - a[1]); const topJobs = sorted(jobs); const topRegions = sorted(regions); const max = (items) => Math.max(1, ...items.map((item) => item[1])); document.getElementById('liveVisitorCount').textContent = liveVisitors.length; document.getElementById('todayApplicationCount').textContent = liveApplications.length; document.getElementById('topJobName').textContent = topJobs[0]?.[0] || '-'; document.getElementById('topRegionName').textContent = topRegions[0]?.[0] || '-'; document.getElementById('liveVisitorFeed').innerHTML = liveVisitors.slice(0, 8).map((visitor) => `<li><span><strong>${esc(visitor.name)}</strong><br><span class="muted">${esc(visitor.page)} · ${esc(visitor.region)}</span></span><span class="muted">${new Date(visitor.joined).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}</span></li>`).join('') || '<li class="muted">Geen actieve bezoekers.</li>'; const renderBars = (items, target) => { document.getElementById(target).innerHTML = items.length ? items.map(([label, value]) => `<div class="analytics-bar"><span>${esc(label)}</span><i style="width:${Math.round(value / max(items) * 100)}%"></i><strong>${value}</strong></div>`).join('') : '<p class="muted">Nog geen data.</p>'; }; renderBars(topJobs, 'topJobsList'); renderBars(topRegions, 'regionList'); renderBars(sorted(genders), 'genderList'); };
+      const renderActivity = () => { const query = document.getElementById('globalAdminSearch').value.toLowerCase(); const audit = readAdminState('zf_admin_audit', []).map((entry) => ({ type: entry.domain, item: entry.action, action: new Date(entry.timestamp).toLocaleString('nl-NL') })); const moduleAudit = readAdminState('zf_admin_module_actions', []).map((entry) => ({ type: entry.module, item: entry.action, action: new Date(entry.timestamp).toLocaleString('nl-NL') })); const activities = [{ type: 'Gebruiker', item: 'Sophie de Vries', action: 'KYC-controle vereist' }, { type: 'Financieel', item: 'Factuur ZF-2026-018', action: 'Wacht op goedkeuring' }, { type: 'Compliance', item: 'Wet DBA-monitor', action: 'Geen nieuwe meldingen' }, ...audit, ...moduleAudit].filter((activity) => !query || `${activity.type} ${activity.item} ${activity.action}`.toLowerCase().includes(query)).slice(0, 50); document.getElementById('adminActivityTable').innerHTML = activities.length ? `<table><thead><tr><th>Domein</th><th>Onderwerp</th><th>Actie</th></tr></thead><tbody>${activities.map((activity) => `<tr><td>${esc(activity.type)}</td><td>${esc(activity.item)}</td><td>${esc(activity.action)}</td></tr>`).join('')}</tbody></table>` : '<p class="admin-empty">Geen activiteit gevonden.</p>'; document.getElementById('adminActivityChart').innerHTML = [38, 64, 52, 82, 57, 74, 46].map((height, index) => `<span><i style="height:${height}%"></i>Dag ${index + 1}</span>`).join(''); };
+      document.querySelectorAll('[data-admin-tab]').forEach((button) => button.addEventListener('click', () => { const tab = button.dataset.adminTab; document.querySelectorAll('[data-admin-tab]').forEach((item) => item.classList.toggle('active', item === button)); document.querySelectorAll('[data-admin-view]').forEach((view) => view.classList.toggle('active', view.dataset.adminView === tab)); if (tab === 'moderation') renderModeration(); if (tab === 'support') renderSupport(); if (tab === 'analytics') renderAnalytics(); }));
+      document.getElementById('moderationSearch').addEventListener('input', renderModeration);
+      document.getElementById('moderationFilter').addEventListener('change', renderModeration);
+      document.getElementById('supportSearch').addEventListener('input', renderSupport);
+      document.getElementById('supportFilter').addEventListener('change', renderSupport);
+      document.getElementById('globalAdminSearch').addEventListener('input', renderActivity);
+      document.getElementById('adminRefreshAll').addEventListener('click', () => { renderActivity(); renderModeration(); renderSupport(); document.getElementById('dataToolStatus').textContent = 'Admingegevens ververst om ' + new Date().toLocaleTimeString('nl-NL'); });
+      document.getElementById('backupAllButton').addEventListener('click', () => { const data = Object.fromEntries(Object.keys(localStorage).filter((key) => key.startsWith('zf_')).map((key) => [key, localStorage.getItem(key)])); downloadJson('zekerflex-volledige-backup.json', { exported_at: new Date().toISOString(), data }); document.getElementById('dataToolStatus').textContent = 'Back-up gedownload.'; });
+      document.getElementById('restoreAllButton').addEventListener('click', () => document.getElementById('restoreAllInput').click());
+      document.getElementById('restoreAllInput').addEventListener('change', (event) => { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { try { const payload = JSON.parse(reader.result); const data = payload.data || payload; Object.entries(data).filter(([key]) => key.startsWith('zf_')).forEach(([key, value]) => localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value))); document.getElementById('dataToolStatus').textContent = 'Back-up geïmporteerd.'; renderAdmin(); } catch { document.getElementById('dataToolStatus').textContent = 'Import mislukt: ongeldig JSON-bestand.'; } }; reader.readAsText(file); event.target.value = ''; });
+      document.getElementById('storageAuditButton').addEventListener('click', () => { const invalid = Object.keys(localStorage).filter((key) => key.startsWith('zf_')).filter((key) => { try { JSON.parse(localStorage.getItem(key)); return false; } catch { return true; } }); document.getElementById('dataToolStatus').textContent = invalid.length ? `${invalid.length} opslagitem(s) bevatten ongeldige JSON.` : 'Opslagaudit afgerond: alle zf_-items zijn valide JSON.'; });
+      document.getElementById('analyticsRefreshButton').addEventListener('click', () => { renderAnalytics(); document.getElementById('analyticsStatus').textContent = 'Live data bijgewerkt om ' + new Date().toLocaleTimeString('nl-NL'); });
+      document.getElementById('simulateVisitorButton').addEventListener('click', () => { const pages = ['Beschikbare shifts', 'Klusdetails', 'Profiel bekijken', 'Inloggen']; const regions = ['Noord-Brabant', 'Zuid-Holland', 'Groningen', 'Utrecht']; liveVisitors.unshift({ name: 'Nieuwe bezoeker', page: pages[Math.floor(Math.random() * pages.length)], region: regions[Math.floor(Math.random() * regions.length)], joined: new Date().toISOString() }); localStorage.setItem('zf_live_visitors', JSON.stringify(liveVisitors.slice(0, 30))); renderAnalytics(); document.getElementById('analyticsStatus').textContent = 'Nieuwe live bezoeker ontvangen.'; });
+      document.getElementById('simulateApplicationButton').addEventListener('click', () => { const jobs = ['Barista ochtendshift', 'Event host avondshift', 'Pakketbezorger', 'Promotie medewerker']; const regions = ['Noord-Brabant', 'Zuid-Holland', 'Groningen', 'Utrecht']; const genders = ['Vrouw', 'Man', 'Onbekend']; liveApplications.push({ job: jobs[Math.floor(Math.random() * jobs.length)], region: regions[Math.floor(Math.random() * regions.length)], gender: genders[Math.floor(Math.random() * genders.length)] }); localStorage.setItem('zf_live_applications', JSON.stringify(liveApplications)); renderAnalytics(); document.getElementById('analyticsStatus').textContent = 'Nieuwe aanmelding verwerkt.'; });
+      document.getElementById('exportAnalyticsButton').addEventListener('click', () => { downloadJson('zekerflex-analytics.json', { exported_at: new Date().toISOString(), visitors: liveVisitors, applications: liveApplications }); document.getElementById('analyticsStatus').textContent = 'Analytics geëxporteerd.'; });
+      document.getElementById('analyticsAutoRefresh').addEventListener('change', (event) => { if (event.target.checked) { window.analyticsTimer = window.setInterval(renderAnalytics, 10000); } else { window.clearInterval(window.analyticsTimer); } });
+      window.analyticsTimer = window.setInterval(renderAnalytics, 10000);
+      document.querySelectorAll('[data-module]').forEach((button) => button.addEventListener('click', () => { location.href = `admin-module.html?module=${encodeURIComponent(button.dataset.module)}`; }));
+      renderActivity();
+    }
+  </script>
+</body>
+</html>

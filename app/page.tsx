@@ -1,105 +1,22 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Filter, Heart, Search, ShieldCheck, Sparkles, TrendingUp, Zap } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowUpRight, Check, ShieldCheck, Sparkles, Zap } from 'lucide-react';
 import Footer from '@/components/navigation/Footer';
 import Navbar from '@/components/navigation/Navbar';
-import ShiftCard from '@/components/cards/ShiftCard';
-import ApplyModal from '@/components/modals/ApplyModal';
-import { createClient } from '@/lib/supabase/client';
-import type { Shift } from '@/lib/types';
 
 export default function HomePage() {
-  const supabase = createClient();
-  const [shifts, setShifts] = useState<Shift[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('alle');
-  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
-  const [showFavorites, setShowFavorites] = useState(false);
-  const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
-
-  useEffect(() => {
-    const storedFavorites = window.localStorage.getItem('zekerflex-favorites');
-    if (storedFavorites) setFavoriteIds(JSON.parse(storedFavorites));
-
-    const fetchShifts = async () => {
-      const { data, error } = await supabase.from('shifts').select('*').order('created_at', { ascending: false });
-      if (error) console.error('Fout bij ophalen shifts:', error);
-      if (data) setShifts(data as Shift[]);
-      setLoading(false);
-    };
-    fetchShifts();
-  }, []);
-
-  const filteredShifts = shifts.filter((shift) => {
-    const query = searchTerm.toLowerCase();
-    const matchesSearch = [shift.title, shift.company, shift.location].some((value) => value.toLowerCase().includes(query));
-    const matchesCategory = selectedCategory === 'alle' || shift.category.toLowerCase() === selectedCategory.toLowerCase();
-    const matchesFavorites = !showFavorites || favoriteIds.includes(shift.id);
-    return matchesSearch && matchesCategory && matchesFavorites;
-  });
-
-  const toggleFavorite = (shiftId: string) => {
-    const nextFavorites = favoriteIds.includes(shiftId) ? favoriteIds.filter((id) => id !== shiftId) : [...favoriteIds, shiftId];
-    setFavoriteIds(nextFavorites);
-    window.localStorage.setItem('zekerflex-favorites', JSON.stringify(nextFavorites));
-  };
-
-  return <div className="home-shell flex min-h-screen flex-col bg-slate-50/50">
-    <Navbar />
-    <main className="flex-grow">
-      <section className="home-hero border-b border-gray-100 bg-white px-4 pb-20 pt-16 sm:px-6 lg:px-8">
-        <div className="hero-spotlight hero-glow-1" />
-        <div className="hero-spotlight hero-glow-2" />
-        <div className="hero-grid" />
-
-        <div className="relative mx-auto max-w-5xl space-y-6 text-center">
-          <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50/80 px-4 py-2 text-xs font-bold text-indigo-700 shadow-sm shadow-indigo-100 backdrop-blur-sm"><Sparkles className="h-4 w-4" /> Ontdek de leukste flexibele klussen</div>
-          <h1 className="text-4xl font-black leading-tight tracking-tight text-gray-900 sm:text-6xl">Werken wanneer het jou uitkomt,<br className="hidden sm:inline" /> <span className="text-indigo-600">tegen jouw eigen tarief.</span></h1>
-          <p className="mx-auto max-w-2xl text-base font-medium leading-relaxed text-gray-500 sm:text-lg">Kies uit shifts in Horeca, Logistiek, Sales en Events. Solliciteer direct en bouw je eigen flexibele carrière op.</p>
-          <div className="mx-auto grid max-w-3xl grid-cols-2 gap-4 pt-6 md:grid-cols-4">
-            {['1.500+|Ingevulde Shifts', '€23.50|Gemiddeld Uurtarief', '24 Uur|Snelle Uitbetaling', '4.9 / 5|Kandidaat Score'].map(([value, label]) => <div key={label} className="metric-card rounded-2xl border border-gray-100 bg-white/80 p-4 shadow-[0_12px_30px_rgba(79,70,229,0.06)] backdrop-blur-sm"><span className="block text-2xl font-black text-gray-900">{value}</span><span className="text-xs font-semibold text-gray-400">{label}</span></div>)}
-          </div>
-        </div>
-      </section>
-
-      <section className="relative z-20 mx-auto -mt-8 max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="search-shell flex flex-col items-center gap-3 rounded-3xl border border-gray-100 bg-white/80 p-4 shadow-[0_25px_60px_rgba(79,70,229,0.12)] backdrop-blur-xl md:flex-row">
-          <div className="relative w-full md:w-1/2">
-            <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-            <input value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Zoek op functie, bedrijf of stad..." className="w-full rounded-2xl bg-gray-50 py-3.5 pl-11 pr-4 text-sm font-semibold text-gray-700 outline-none transition focus:bg-white focus:ring-2 focus:ring-indigo-500" />
-          </div>
-          <div className="flex w-full items-center gap-2 md:w-1/2">
-            <Filter className="ml-2 hidden h-5 w-5 text-gray-400 sm:block" />
-            <select value={selectedCategory} onChange={(event) => setSelectedCategory(event.target.value)} className="w-full rounded-2xl bg-gray-50 px-4 py-3.5 text-sm font-semibold text-gray-700 outline-none transition focus:bg-white focus:ring-2 focus:ring-indigo-500"><option value="alle">Alle Categorieën</option><option value="Horeca & Events">Horeca & Events</option><option value="Logistiek & Magazijn">Logistiek & Magazijn</option><option value="Promotie & Sales">Promotie & Sales</option><option value="Schoonmaak">Schoonmaak</option></select>
-            <button type="button" onClick={() => setShowFavorites(!showFavorites)} className={`flex shrink-0 items-center gap-2 rounded-2xl px-4 py-3.5 text-xs font-bold transition ${showFavorites ? 'bg-rose-50 text-rose-600' : 'bg-gray-50 text-gray-500 hover:bg-rose-50 hover:text-rose-600'}`}><Heart className={`h-4 w-4 ${showFavorites ? 'fill-current' : ''}`} /> <span className="hidden sm:inline">Favorieten ({favoriteIds.length})</span></button>
-          </div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-black tracking-tight text-gray-900">Beschikbare Shifts</h2>
-            <p className="mt-1 text-xs font-medium text-gray-400">Reageer direct en start op korte termijn</p>
-          </div>
-          <span className="rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-extrabold text-indigo-700">{filteredShifts.length} openstaand</span>
-        </div>
-        {loading ? <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">{[1, 2, 3].map((item) => <div key={item} className="h-72 animate-pulse rounded-3xl border border-gray-100 bg-white" />)}</div> : filteredShifts.length === 0 ? <div className="mx-auto max-w-md rounded-3xl border border-gray-100 bg-white p-12 text-center"><Heart className="mx-auto h-9 w-9 text-gray-300" /><h3 className="mt-3 text-base font-bold text-gray-800">Geen shifts gevonden</h3><p className="mt-1 text-xs text-gray-500">{showFavorites ? 'Je hebt nog geen favoriete shifts opgeslagen.' : 'Probeer een andere zoekopdracht of verander je filter.'}</p></div> : <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">{filteredShifts.map((shift) => <ShiftCard key={shift.id} shift={shift} onApply={setSelectedShift} isFavorite={favoriteIds.includes(shift.id)} onToggleFavorite={toggleFavorite} />)}</div>}
-      </section>
-
-      <section className="border-t border-gray-100 bg-white px-4 py-20 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          <div className="mx-auto mb-16 max-w-2xl text-center">
-            <h2 className="text-3xl font-black tracking-tight text-gray-900">Waarom werken via ZekerFlex?</h2>
-            <p className="mt-2 text-sm font-medium text-gray-500">Vrijheid gecombineerd met de zekerheid van een betrouwbaar platform.</p>
-          </div>
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">{[[Zap, 'Direct Solliciteren', 'Geen ingewikkelde procedures of lange wachttijden.'], [ShieldCheck, 'Gegarandeerd Tarief', 'Transparante uurtarieven zonder verborgen kosten.'], [TrendingUp, 'Volledige Regie', 'Jij bepaalt waar, wanneer en hoe vaak je werkt.']].map(([Icon, title, text]) => <div key={title as string} className="feature-card space-y-4 rounded-3xl border border-gray-100 bg-slate-50 p-8"><Icon className="h-6 w-6 text-indigo-600" /><h3 className="text-lg font-bold text-gray-900">{title as string}</h3><p className="text-xs font-medium leading-relaxed text-gray-500">{text as string}</p></div>)}</div>
-        </div>
-      </section>
-    </main>
-    <Footer />
-    <ApplyModal shift={selectedShift} onClose={() => setSelectedShift(null)} />
-  </div>;
+  return <div className="flex min-h-screen flex-col bg-[#f8f8f6] text-[#090a0f]"><Navbar /><main className="flex-grow">
+    <section className="relative overflow-hidden bg-[#090a0f] text-[#f8f8f6]"><div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_18%,rgba(255,100,45,.16),transparent_26%),linear-gradient(135deg,#090a0f_0%,#14161c_58%,#24252a_100%)]" /><div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8"><div className="grid items-center gap-12 lg:grid-cols-[1.15fr_.85fr]">
+      <div><span className="inline-flex items-center gap-2 rounded-full border border-[#3a3b40] bg-[#1e1f24] px-4 py-2 text-xs font-bold text-[#b9b8b2]"><Sparkles className="h-4 w-4 text-[#ff642d]" /> Het platform voor flexibel werk</span><h1 className="mt-7 text-5xl font-black leading-[.98] tracking-tight sm:text-7xl">Work to live.<br /><span className="text-[#ff642d]">Werk op jouw manier.</span></h1><p className="mt-7 max-w-xl text-lg leading-relaxed text-[#c8c7c1] sm:text-xl">Ervaar vrijheid zonder gedoe. Kies werk dat past bij jouw leven, verdien eerlijk en ontwikkel jezelf met iedere shift.</p><div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap"><a href="#shifts" className="rounded-full bg-[#ff642d] px-6 py-3.5 text-center font-extrabold text-[#090a0f] transition hover:bg-[#e85022]">Bekijk beschikbare shifts</a><Link href="/login?role=werknemer" className="rounded-full border border-[#68686d] px-6 py-3.5 text-center font-bold text-white transition hover:bg-white/10">Start als werknemer</Link><Link href="/register" className="rounded-full border border-white/20 bg-white px-6 py-3.5 text-center font-bold text-[#090a0f] transition hover:bg-[#b9b8b2]">Download de werknemersapp</Link><Link href="/login" className="rounded-full border border-[#ff642d] bg-[#ff642d] px-6 py-3.5 text-center font-extrabold text-[#090a0f] transition hover:bg-[#e85022]">Sessie starten</Link></div></div>
+      <div className="relative flex min-h-[470px] items-center justify-center [perspective:1200px] sm:min-h-[560px]"><div className="absolute left-0 top-[12%] z-10 flex items-center gap-2 rounded-[14px] border border-white/30 bg-[#f8f8f6]/95 px-4 py-3 text-xs font-extrabold text-[#090a0f] shadow-2xl"><span className="grid h-8 w-8 place-items-center rounded-full bg-[#ff642d]"><Check className="h-4 w-4" /></span><span><strong className="block text-base">Match gevonden</strong><span className="font-semibold text-[#6b6a65]">Past bij jouw profiel</span></span></div><div className="absolute bottom-[3%] left-0 z-10 flex items-center gap-2 rounded-[14px] border border-white/30 bg-[#f8f8f6]/95 px-4 py-3 text-xs font-extrabold text-[#090a0f] shadow-2xl"><span className="grid h-8 w-8 place-items-center rounded-full bg-[#ff642d]">€</span><span><strong className="block text-base">€20,00 / uur</strong><span className="font-semibold text-[#6b6a65]">Transparant tarief</span></span></div><div className="relative z-[2] w-[min(100%,330px)] rotate-[2deg] overflow-hidden rounded-[2.5rem] border-[10px] border-black bg-black shadow-2xl transition duration-500 hover:rotate-0"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=900&q=85" alt="Werknemer klaar voor een nieuwe klus" className="h-[520px] w-full object-cover" /><div className="absolute inset-x-3 bottom-3 rounded-2xl bg-white/95 p-4 text-[#090a0f] shadow-xl"><div className="flex items-center gap-3"><img src="/zekerflex-logo.jpeg" alt="ZekerFlex" className="h-11 w-11 rounded-xl object-contain" /><div><strong className="block text-base">ZekerFlex</strong><p className="text-sm leading-tight text-[#3d3c39]">Gefeliciteerd! Je bent uitgekozen voor de klus.<br /><b>Zet hem op!</b></p></div></div></div></div><img className="absolute bottom-[13%] right-0 z-[3] h-[150px] w-[112px] rotate-[7deg] rounded-[22px] border-[7px] border-[#f8f8f6] object-cover shadow-2xl sm:h-[190px] sm:w-[142px]" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=500&q=85" alt="Freelancer van ZekerFlex" /></div>
+    </div><div className="mt-16 grid grid-cols-2 gap-5 border-y border-[#34353a] py-5 text-[#b9b8b2] sm:grid-cols-4"><div><strong className="text-2xl font-black text-white">20.000+</strong><span className="ml-2 text-xs">shifts per jaar</span></div><div><strong className="text-2xl font-black text-white">10.000+</strong><span className="ml-2 text-xs">betrouwbare bedrijven</span></div><div><strong className="text-2xl font-black text-white">€20</strong><span className="ml-2 text-xs">gemiddeld per uur</span></div><div><strong className="text-2xl font-black text-white">4.9/5</strong><span className="ml-2 text-xs">ervaring van werkers</span></div></div></div></section>
+      <section id="about" className="border-y border-[#deddd7] bg-[#f8f8f6] px-4 py-20 sm:px-6 lg:px-8"><div className="mx-auto max-w-7xl"><div className="mb-10 max-w-2xl"><span className="text-xs font-bold uppercase tracking-wider text-[#ff642d]">Waarom ZekerFlex?</span><h2 className="mt-2 text-4xl font-black">Maximaal verdienen,<br /><span className="text-[#ff642d]">minimale onzekerheid.</span></h2><p className="mt-4 leading-relaxed text-[#5f5e59]">Transparante tarieven, betrouwbare bedrijven en een platform dat jou helpt om werk en leven zelf te organiseren.</p></div><div className="grid gap-5 md:grid-cols-3"><div className="rounded border border-[#deddd7] bg-[#ebeae5] p-7"><Zap className="h-8 w-8 text-[#ff642d]" /><h3 className="mt-5 text-xl font-black">Snel geregeld</h3><p className="mt-2 text-sm leading-relaxed text-[#5f5e59]">Reageer direct op een shift en krijg snel duidelijkheid.</p></div><div className="rounded border border-[#deddd7] bg-[#ebeae5] p-7"><ShieldCheck className="h-8 w-8 text-[#ff642d]" /><h3 className="mt-5 text-xl font-black">Zekerheid inbegrepen</h3><p className="mt-2 text-sm leading-relaxed text-[#5f5e59]">Werk met geverifieerde bedrijven en zie vooraf precies wat je verdient.</p></div><div className="rounded border border-[#deddd7] bg-[#ebeae5] p-7"><ArrowUpRight className="h-8 w-8 text-[#ff642d]" /><h3 className="mt-5 text-xl font-black">Blijf groeien</h3><p className="mt-2 text-sm leading-relaxed text-[#5f5e59]">Ontdek sectoren, bouw ervaring op en maak je profiel sterker.</p></div></div></div></section>
+    <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8"><div className="mb-12 text-center"><span className="text-xs font-bold uppercase tracking-wider text-[#ff642d]">Zo werkt het</span><h2 className="mt-2 text-3xl font-black">Van profiel naar eerste shift</h2></div><div className="grid gap-8 md:grid-cols-3"><div className="text-center"><div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#ff642d] text-xl font-black">1</div><h3 className="mt-5 text-lg font-black">Maak je profiel</h3><p className="mt-2 text-sm text-[#5f5e59]">Vertel wat je kunt en kies hoe jij wilt werken.</p></div><div className="text-center"><div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#090a0f] text-xl font-black text-white">2</div><h3 className="mt-5 text-lg font-black">Kies je shift</h3><p className="mt-2 text-sm text-[#5f5e59]">Vergelijk tijden, locatie, sector en tarief.</p></div><div className="text-center"><div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#8f8ce8] text-xl font-black text-white">3</div><h3 className="mt-5 text-lg font-black">Werk en verdien</h3><p className="mt-2 text-sm text-[#5f5e59]">Rond je shift af en bouw aan je volgende kans.</p></div></div></section>
+    <section className="border-y border-[#deddd7] bg-[#ebeae5] px-4 py-20 sm:px-6 lg:px-8"><div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-2"><div><span className="text-xs font-bold uppercase tracking-wider text-[#ff642d]">Voor bedrijven en opdrachtgevers</span><h2 className="mt-2 text-4xl font-black">Sterke mensen.<br />Precies wanneer jij ze nodig hebt.</h2><p className="mt-4 max-w-xl leading-relaxed text-[#5f5e59]">Vul je team flexibel aan met betrouwbare professionals. Plaats een shift, ontvang reacties en beheer alles vanuit je eigen werkgeversomgeving.</p><Link href="/dashboard/opdrachtgever" className="mt-7 inline-block rounded-full bg-[#090a0f] px-6 py-3.5 font-extrabold text-white transition hover:bg-[#24252a]">Start als bedrijf</Link></div><div className="relative overflow-hidden rounded-3xl border-8 border-[#090a0f] bg-[#090a0f] shadow-2xl [transform:rotateY(-8deg)_rotateZ(2deg)] transition duration-500 hover:[transform:rotateY(0deg)_rotateZ(0deg)]"><img src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1100&q=85" alt="Team werkt samen" className="h-[360px] w-full object-cover" /><div className="absolute bottom-4 left-4 rounded-xl bg-[#f8f8f6]/95 px-4 py-3 text-sm font-black text-[#090a0f] shadow-xl">10.000+ betrouwbare bedrijven</div></div></div></section>
+    <section className="bg-[#f8f8f6] px-4 pb-20 sm:px-6 lg:px-8"><div className="mx-auto grid max-w-7xl gap-4 sm:grid-cols-[1.2fr_.8fr_.8fr]"><figure className="relative min-h-[260px] overflow-hidden rounded-3xl bg-[#17181d] sm:min-h-[300px]"><img src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1100&q=85" alt="Team werkt samen" className="h-full w-full object-cover transition duration-500 hover:scale-105" /><figcaption className="absolute bottom-3 left-3 right-3 rounded-xl border border-white/20 bg-[#090a0f]/80 p-3 text-xs font-bold text-white">Samenwerken met mensen die vooruit willen.</figcaption></figure><figure className="relative min-h-[220px] overflow-hidden rounded-3xl bg-[#17181d]"><img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=700&q=85" alt="Professional aan het werk" className="h-full w-full object-cover transition duration-500 hover:scale-105" /><figcaption className="absolute bottom-3 left-3 right-3 rounded-xl border border-white/20 bg-[#090a0f]/80 p-3 text-xs font-bold text-white">Jouw talent, zichtbaar op het juiste moment.</figcaption></figure><figure className="relative min-h-[220px] overflow-hidden rounded-3xl bg-[#17181d]"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=700&q=85" alt="Freelancer met vertrouwen" className="h-full w-full object-cover transition duration-500 hover:scale-105" /><figcaption className="absolute bottom-3 left-3 right-3 rounded-xl border border-white/20 bg-[#090a0f]/80 p-3 text-xs font-bold text-white">Werk dat past bij jouw tempo.</figcaption></figure></div></section>
+    <section className="bg-[#07151a] px-4 py-20 text-white sm:px-6 lg:px-8"><div className="mx-auto max-w-7xl"><span className="inline-flex rounded-full border border-[#427b7d] bg-[#0d2930] px-4 py-2 text-xs font-bold text-[#63e6d5]">ZekerFlex OS</span><h2 className="mt-7 max-w-4xl text-4xl font-black sm:text-6xl">Alle diensten.<br /><span className="text-[#63e6d5]">Eén slimme werkplek.</span></h2><p className="mt-6 max-w-2xl text-lg leading-relaxed text-[#b7d7d4]">Werknemers, bedrijven, planning, support en administratie komen samen in één duidelijk platform.</p><div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"><Link href="/dashboard/werknemer" className="rounded-2xl border border-[#20464b] bg-[#0d2930] p-6 transition hover:-translate-y-1"><span className="text-3xl text-[#63e6d5]">♙</span><h3 className="mt-5 text-xl font-black">Werknemers</h3><p className="mt-2 text-sm text-[#b7d7d4]">Shifts, sollicitaties en inkomen.</p></Link><Link href="/dashboard/opdrachtgever" className="rounded-2xl border border-[#20464b] bg-[#0d2930] p-6 transition hover:-translate-y-1"><span className="text-3xl text-[#63e6d5]">▦</span><h3 className="mt-5 text-xl font-black">Bedrijven</h3><p className="mt-2 text-sm text-[#b7d7d4]">Teams, kandidaten en planning.</p></Link><Link href="/dashboard" className="rounded-2xl border border-[#20464b] bg-[#0d2930] p-6 transition hover:-translate-y-1"><span className="text-3xl text-[#63e6d5]">⚙</span><h3 className="mt-5 text-xl font-black">Software</h3><p className="mt-2 text-sm text-[#b7d7d4]">POS, HR, voorraad en boekhouding.</p></Link><Link href="/meldingen" className="rounded-2xl border border-[#20464b] bg-[#0d2930] p-6 transition hover:-translate-y-1"><span className="text-3xl text-[#63e6d5]">💬</span><h3 className="mt-5 text-xl font-black">Support</h3><p className="mt-2 text-sm text-[#b7d7d4]">Persoonlijke hulp en updates.</p></Link></div></div></section>
+    <section className="bg-[#ebeae5] px-4 py-20 sm:px-6 lg:px-8"><div className="mx-auto max-w-7xl"><div className="mb-10 text-center"><span className="text-xs font-bold uppercase tracking-wider text-[#ff642d]">Echte ervaringen</span><h2 className="mt-2 text-3xl font-black">Werk dat in jouw leven past</h2></div><div className="grid gap-5 md:grid-cols-3"><blockquote className="border border-[#deddd7] bg-white p-6 text-[#5f5e59] shadow-sm">“Ik plan mijn shifts om mijn studie heen. Dat geeft me vrijheid en ondertussen ontmoet ik steeds nieuwe mensen.”<footer className="mt-5 text-sm font-bold text-[#090a0f]">Sanne <span className="font-normal text-[#8b8a84]">· werknemer</span></footer></blockquote><blockquote className="border border-[#deddd7] bg-white p-6 text-[#5f5e59] shadow-sm">“We vinden snel extra mensen wanneer het druk wordt. De communicatie blijft overzichtelijk.”<footer className="mt-5 text-sm font-bold text-[#090a0f]">Mark <span className="font-normal text-[#8b8a84]">· opdrachtgever</span></footer></blockquote><blockquote className="border border-[#deddd7] bg-white p-6 text-[#5f5e59] shadow-sm">“Door verschillende opdrachten te proberen, heb ik ontdekt welk werk echt bij mij past.”<footer className="mt-5 text-sm font-bold text-[#090a0f]">Yara <span className="font-normal text-[#8b8a84]">· werknemer</span></footer></blockquote></div></div></section>
+    <section className="bg-[#ff642d] px-4 py-16 text-center sm:px-6 lg:px-8"><h2 className="text-3xl font-black sm:text-4xl">Klaar voor je volgende shift?</h2><p className="mt-3">Maak vandaag je profiel aan en ontdek wat er morgen mogelijk is.</p><Link href="/register" className="mt-7 inline-block rounded-full bg-[#090a0f] px-7 py-3.5 font-extrabold text-white transition hover:bg-[#24252a]">Aanmelden als werknemer</Link></section>
+  </main><Footer /></div>;
 }

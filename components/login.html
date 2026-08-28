@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <link rel="stylesheet" href="zf-atmosphere.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZekerFlex - Inloggen</title>
+  <link rel="icon" type="image/jpeg" href="zekerflex-logo.jpeg">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans min-h-screen flex items-center justify-center p-4">
+
+  <style>
+    body.role-pick-only #authForm,
+    body.role-pick-only #switchBtn,
+    body.role-pick-only #forgotPasswordLink,
+    body.role-pick-only .grid.grid-cols-2.gap-2.pt-2 { display: none; }
+    body.role-pick-only .bg-white { padding-bottom: 2rem; }
+    body.role-pick-only #formTitle { color: #6b7280; }
+    body.role-pick-only [role="tablist"] { grid-template-columns: 1fr; gap: .75rem; }
+    body.role-pick-only [role="tablist"] button { padding: 1rem; text-align: center; }
+    body.role-selected [role="tablist"] { display: none; }
+    body.company-login { padding: 0; background: #eef2f8; border-left: 10px solid #12bdb3; }
+    body.company-login > .bg-white { display: grid; grid-template-columns: minmax(500px, .9fr) minmax(520px, 1.1fr); width: 100%; max-width: 1320px; min-height: 100vh; padding: 0; overflow: hidden; border: 0; border-radius: 0; }
+    body.company-login > .bg-white > *:not(.company-visual) { grid-column: 1; margin-left: 3.5rem; margin-right: 3.5rem; }
+    body.company-login > .bg-white > .text-center:first-child { margin-top: 2.5rem; }
+    body.company-login > .bg-white > .company-visual { grid-column: 2; grid-row: 1 / span 4; }
+    body.company-login > .bg-white > .text-center:first-child { position: relative; padding-top: 4.5rem; }
+    body.company-login > .bg-white > .text-center:first-child::after { content: ''; display: block; margin-top: 4rem; border-bottom: 1px solid #d1d5db; }
+    body.company-login #languageChoice { display: block; position: absolute; top: 0; left: 0; width: 100%; border: 1px solid #d1d5db; border-radius: .5rem; background: white; padding: .7rem 1rem; color: #374151; font-size: .95rem; }
+    body.company-login form > .grid.grid-cols-2.gap-2.pt-2,
+    body.company-login #switchBtn { display: none; }
+    body.company-login #companySupport { display: block; }
+    body.company-login #companySupport a { color: #2563eb; font-weight: 700; }
+    body.company-login #companyRegisterPrompt { display: block; }
+    body.company-login #companyRegisterPrompt.hidden { display: none; }
+    body.company-login #companyRegisterPrompt button { color: #2563eb; font-weight: 700; }
+    body.company-login #welcomeTitle { display: block; }
+    body.company-login #companyRegisterPrompt { display: block; }
+    body.company-login:has(#registrationFields:not(.hidden)) #companyRegisterPrompt { display: none; }
+    body.company-login:has(#registrationFields:not(.hidden)) #welcomeTitle { margin-top: 3rem; font-size: 2.25rem; }
+    body.company-login:has(#registrationFields:not(.hidden)) #formTitle { max-width: 34rem; margin-left: auto; margin-right: auto; font-size: 1.05rem; line-height: 1.5; }
+    body.company-login:has(#registrationFields:not(.hidden)) #registrationFields { border: 0; background: transparent; padding: 0; }
+    body.company-login:has(#registrationFields:not(.hidden)) #registrationIntro { display: none; }
+    body.company-login:has(#registrationFields:not(.hidden)) #companySupport { margin-top: 1.5rem; }
+    body.company-login:has(#registrationFields:not(.hidden)) #registrationFields { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem .75rem; }
+    body.company-login:has(#registrationFields:not(.hidden)) #authForm { display: flex; flex-direction: column; gap: 1.25rem; }
+    body.company-login:has(#registrationFields:not(.hidden)) #registrationFields { display: contents; }
+    body.company-login:has(#registrationFields:not(.hidden)) #companyField { order: 1; }
+    body.company-login:has(#registrationFields:not(.hidden)) #nameFields { order: 2; display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+    body.company-login:has(#registrationFields:not(.hidden)) #phoneField { order: 3; }
+    body.company-login:has(#registrationFields:not(.hidden)) #emailField { order: 4; }
+    body.company-login:has(#registrationFields:not(.hidden)) #passwordField { order: 5; }
+    body.company-login:has(#registrationFields:not(.hidden)) #confirmPasswordField { order: 6; }
+    body.company-login:has(#registrationFields:not(.hidden)) #registrationFields > #kvkField,
+    body.company-login:has(#registrationFields:not(.hidden)) #registrationFields > #vatField,
+    body.company-login:has(#registrationFields:not(.hidden)) #registrationFields > label[for="ibanNumber"],
+    body.company-login:has(#registrationFields:not(.hidden)) #registrationFields > p { display: none; }
+    body.company-login:has(#registrationFields:not(.hidden)) #registrationTerms { order: 8; }
+    body.company-login:has(#registrationFields:not(.hidden)) #rememberRow { display: none; }
+    body.company-login:has(#registrationFields:not(.hidden)) #submitBtn { order: 9; background: #12c8bc; color: #071642; }
+    body.company-login:has(#registrationFields:not(.hidden)) #companyAccountPrompt { display: block; order: 10; }
+    body.company-login:has(#registrationFields:not(.hidden)) #companySupport { order: 11; }
+    body.company-login:has(#registrationFields:not(.hidden)) #companyField,
+    body.company-login:has(#registrationFields:not(.hidden)) #kvkField,
+    body.company-login:has(#registrationFields:not(.hidden)) #vatField,
+    body.company-login:has(#registrationFields:not(.hidden)) #phoneField,
+    body.company-login:has(#registrationFields:not(.hidden)) #registrationFields > p { grid-column: 1 / -1; }
+    body.company-login:has(#registrationFields:not(.hidden)) #companyField { order: -2; }
+    body.company-login:has(#registrationFields:not(.hidden)) #registrationFields > label[for="fullName"] { order: -1; }
+    #verificationPanel { display: none; }
+    #verificationPanel.active { display: block; }
+    #verificationCode { display: grid; grid-template-columns: repeat(6, 1fr); gap: .35rem; }
+    #verificationCode input { width: 100%; height: 3.4rem; border: 1px solid #dbe2f0; border-radius: .4rem; background: #fff; color: #10165c; text-align: center; font-size: 1.35rem; font-weight: 700; outline: none; }
+    #verificationCode input:focus { border-color: #12bdb3; box-shadow: 0 0 0 2px rgba(18, 189, 179, .2); }
+    body.company-login #verificationPanel { grid-column: 1; margin-left: 3.5rem; margin-right: 3.5rem; }
+    body.company-login #verificationPanel h1 { color: #10165c; }
+    body.company-login #verificationPanel .verification-submit { background: #12c8bc; color: #071642; }
+    #verificationPanel .resend-help { color: #10165c; text-align: center; line-height: 1.5; }
+    #verificationPanel .resend-help button,
+    #verificationPanel .verification-support a { color: #1671d9; font-weight: 700; }
+    #verificationPanel .verification-support { margin-top: 7rem; color: #10165c; text-align: center; }
+    #languageChoice,
+    #companySupport { display: none; }
+    body.company-login .company-visual { display: flex; min-height: 100vh; align-items: center; justify-content: center; background: linear-gradient(150deg, rgba(18, 194, 181, .08), rgba(15, 23, 42, .08)), url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=1200&q=85') center / cover; position: relative; }
+    body.company-login .company-visual::after { content: 'WERK OP JOUW MANIER'; position: absolute; right: 8%; bottom: 18%; color: #e11d2e; font-size: clamp(1.8rem, 4vw, 4rem); font-weight: 900; line-height: .9; letter-spacing: -.04em; transform: rotate(-7deg); text-align: center; text-shadow: 1px 1px 0 #991b1b; }
+    body.company-login #welcomeTitle { margin-top: 1.5rem; }
+    body #zfChatButton,
+    body #zfChatPanel { display: none !important; }
+    body.company-login #zfChatButton { display: flex !important; }
+    body.company-login #zfChatPanel:not(.hidden) { display: block !important; }
+    .company-search-wrap { position: relative; }
+    .company-search-wrap input { padding-right: 3.25rem; }
+    .company-search-button { position: absolute; top: .375rem; right: .375rem; display: grid; width: 2.5rem; height: 2.5rem; place-items: center; border: 0; border-radius: .75rem; background: transparent; color: #10165c; cursor: pointer; }
+    .company-search-button:hover { background: #ecfdf5; color: #059669; }
+    .company-search-results { position: absolute; z-index: 20; top: calc(100% + .5rem); left: 0; right: 0; max-height: 18rem; overflow-y: auto; border: 1px solid #d1d5db; background: #fff; box-shadow: 0 8px 20px rgba(15, 23, 42, .12); }
+    .company-search-result { display: block; width: 100%; padding: .75rem 1rem; border: 0; border-bottom: 1px solid #f3f4f6; background: #fff; color: #10165c; text-align: left; cursor: pointer; }
+    .company-search-result:last-child { border-bottom: 0; }
+    .company-search-result:hover { background: #f8fafc; }
+    .company-search-result strong, .company-search-result small { display: block; }
+    .company-search-result small { margin-top: .25rem; color: #6b7280; }
+    .company-search-empty { padding: .9rem 1rem; color: #6b7280; font-size: .875rem; }
+    #businessEmailNotice { display: flex; gap: 1rem; align-items: center; margin: 0 0 1.25rem; padding: 1.25rem 1.5rem; border-radius: .75rem; background: #fce8e8; color: #071642; font-size: 1.05rem; font-weight: 700; line-height: 1.55; }
+    #businessEmailNotice.hidden { display: none; }
+    #businessEmailNotice::before { content: '!'; display: grid; flex: 0 0 1.5rem; width: 1.5rem; height: 1.5rem; place-items: center; border: 2px solid #dc1828; border-radius: 50%; color: #dc1828; font-weight: 800; }
+    @media (max-width: 800px) {
+      body.company-login { border-left: 0; }
+      body.company-login > .bg-white { display: block; min-height: auto; max-width: 560px; border-radius: 1.5rem; padding-top: 1rem; }
+      body.company-login > .bg-white > *:not(.company-visual) { margin-left: 2rem; margin-right: 2rem; }
+      body.company-login > .bg-white > .company-visual { min-height: 260px; margin: 2rem 0 0; }
+    }
+  </style>
+
+  <div class="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl max-w-md w-full">
+    
+    <!-- Logo -->
+    <div class="text-center mb-8">
+      <select id="languageChoice" aria-label="Taal kiezen">
+        <option value="nl">🇳🇱 Nederlands (NL)</option>
+        <option value="en">🇬🇧 English (EN)</option>
+      </select>
+      <a href="index.html" class="flex items-center justify-center" aria-label="ZekerFlex home"><img src="zekerflex-logo.jpeg" alt="ZekerFlex logo" class="h-12 w-12 object-contain"></a>
+      <h1 id="welcomeTitle" class="hidden text-3xl font-extrabold text-indigo-950 mt-12">Welkom bij ZekerFlex</h1>
+      <p class="text-sm text-gray-500 mt-2" id="formTitle">Log in als werknemer</p>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3 mb-6" role="tablist" aria-label="Kies accounttype">
+      <button type="button" id="workerRoleBtn" onclick="selectRole('werknemer')" class="border-2 border-indigo-500 bg-indigo-50 text-indigo-700 rounded-xl p-3 text-left transition">
+        <span class="block text-sm font-bold">Werknemer</span>
+        <span class="block text-xs mt-1">Shifts zoeken</span>
+      </button>
+      <button type="button" id="employerRoleBtn" onclick="selectRole('opdrachtgever')" class="border-2 border-gray-200 bg-white text-gray-600 rounded-xl p-3 text-left transition">
+        <span class="block text-sm font-bold">Bedrijf</span>
+        <span class="block text-xs mt-1">Shifts beheren</span>
+      </button>
+      <button type="button" id="bureauRoleBtn" onclick="selectRole('bureau_partner')" class="border-2 border-gray-200 bg-white text-gray-600 rounded-xl p-3 text-left transition">
+        <span class="block text-sm font-bold">Bureau Partner</span>
+        <span class="block text-xs mt-1">Eigen flexpool beheren</span>
+      </button>
+    </div>
+
+    <div id="businessEmailNotice" class="hidden" role="alert">Om jezelf als opdrachtgever te registreren dien je een zakelijk e-mailadres (@bedrijfsnaam.nl) in te voeren, zodat we weten dat jij namens een organisatie registreert. Ben je op zoek naar klussen? Maak dan een werknemeraccount aan.</div>
+
+    <!-- Inlog / Registratie Formulier -->
+    <form id="authForm" class="space-y-4">
+      <div>
+        <label id="emailField" class="block text-xs font-semibold text-gray-500 uppercase mb-1" for="email"><span id="emailLabel">E-mailadres</span></label>
+        <input type="email" id="email" required placeholder="bedrijf@voorbeeld.nl" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+      </div>
+
+      <div id="passwordField">
+        <label class="block text-xs font-semibold text-gray-500 uppercase mb-1" for="password"><span id="passwordLabel">Wachtwoord</span></label>
+        <div class="relative">
+          <input type="password" id="password" required autocomplete="current-password" placeholder="••••••••" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <button type="button" id="togglePassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-indigo-600" aria-label="Wachtwoord tonen" title="Wachtwoord tonen">
+            <svg id="showPasswordIcon" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.5"></circle></svg>
+            <svg id="hidePasswordIcon" class="hidden h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m3 3 18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.2A10.8 10.8 0 0 1 12 5c6.5 0 10 7 10 7a18.5 18.5 0 0 1-3.1 3.8M6.2 6.2C3.4 8.2 2 12 2 12s3.5 7 10 7c1 0 2-.2 2.9-.5"></path></svg>
+          </button>
+        </div>
+        <p id="passwordHint" class="mt-1 text-xs text-gray-500">Minimaal 8 tekens, met een kleine letter, hoofdletter, cijfer en speciaal teken.</p>
+        <p id="passwordValidation" class="hidden mt-1 text-xs text-rose-600"></p>
+      </div>
+
+      <div id="confirmPasswordField" class="hidden">
+        <label class="block text-xs font-semibold text-gray-500 uppercase mb-1" for="confirmPassword">Wachtwoord opnieuw</label>
+        <div class="relative">
+          <input type="password" id="confirmPassword" autocomplete="new-password" placeholder="Herhaal je wachtwoord" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <button type="button" id="toggleConfirmPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-indigo-600" aria-label="Wachtwoord tonen" title="Wachtwoord tonen">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.5"></circle></svg>
+          </button>
+        </div>
+        <p id="confirmValidation" class="hidden mt-1 text-xs text-rose-600"></p>
+      </div>
+
+      <div id="registrationFields" class="hidden space-y-4 rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4">
+        <p id="registrationIntro" class="text-xs font-bold uppercase tracking-wider text-indigo-700">Gegevens voor je profiel</p>
+        <div id="nameFields">
+          <label class="block text-xs font-semibold uppercase text-gray-500" for="fullName"><span id="fullNameLabel">Volledige naam</span>
+            <input id="fullName" placeholder="Voornaam" class="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <p id="firstNameValidation" class="hidden mt-1 text-xs text-rose-600">Vul je voornaam in.</p>
+          </label>
+          <label class="block text-xs font-semibold uppercase text-gray-500" for="lastName">Achternaam
+            <input id="lastName" placeholder="Achternaam" class="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <p id="lastNameValidation" class="hidden mt-1 text-xs text-rose-600">Vul je achternaam in.</p>
+          </label>
+        </div>
+        <label id="companyField" class="hidden block text-xs font-semibold uppercase text-gray-500" for="companyName">Bedrijfsnaam
+          <span class="company-search-wrap mt-1.5 block">
+            <input id="companyName" placeholder="Naam van je bedrijf" autocomplete="off" class="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            <button type="button" id="companySearchButton" class="company-search-button" aria-label="Zoek bedrijf in het Handelsregister" title="Zoek bedrijf in het Handelsregister">
+              <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 5 5"></path></svg>
+            </button>
+            <div id="companySearchResults" class="company-search-results hidden" role="listbox" aria-label="KVK zoekresultaten"></div>
+          </span>
+        </label>
+        <label id="kvkField" class="hidden block text-xs font-semibold uppercase text-gray-500" for="kvkNumber">KvK-nummer
+          <input id="kvkNumber" placeholder="12345678" class="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm">
+        </label>
+        <label id="snaField" class="hidden block text-xs font-semibold uppercase text-gray-500" for="snaStatus">SNA-keurmerk (NEN 4400-1)
+          <select id="snaStatus" class="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm"><option value="pending">Wordt gecontroleerd</option><option value="verified">Geldig en aanwezig</option><option value="rejected">Niet aanwezig</option></select>
+        </label>
+        <label id="wttaField" class="hidden block text-xs font-semibold uppercase text-gray-500" for="wttaStatus">Wtta-vergunningsstatus
+          <select id="wttaStatus" class="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm"><option value="pending">Wordt gecontroleerd</option><option value="verified">Vergunning bevestigd</option><option value="rejected">Niet bevestigd</option></select>
+        </label>
+        <label id="vatField" class="hidden block text-xs font-semibold uppercase text-gray-500" for="vatNumber">Btw-nummer
+          <input id="vatNumber" placeholder="NL123456789B01" class="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm">
+        </label>
+        <label id="phoneField" class="block text-xs font-semibold uppercase text-gray-500" for="phoneNumber">Telefoonnummer
+          <span class="mt-1.5 flex overflow-hidden rounded-xl border border-gray-200 bg-white">
+            <select id="countryCode" aria-label="Landcode" class="border-r border-gray-200 bg-white px-2 text-sm text-gray-600 outline-none">
+              <option value="+31">🇳🇱 +31</option>
+              <option value="+32">🇧🇪 +32</option>
+              <option value="+49">🇩🇪 +49</option>
+              <option value="+33">🇫🇷 +33</option>
+              <option value="+44">🇬🇧 +44</option>
+              <option value="+1">🇺🇸 +1</option>
+            </select>
+            <input id="phoneNumber" type="tel" placeholder="6 12345678" class="min-w-0 flex-1 px-4 py-3 text-sm outline-none">
+          </span>
+          <p id="phoneValidation" class="hidden mt-1 text-xs text-rose-600"></p>
+        </label>
+        <label class="block text-xs font-semibold uppercase text-gray-500" for="ibanNumber">Bankrekening (IBAN)
+          <input id="ibanNumber" placeholder="NL00 BANK 0000 0000 00" class="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm">
+        </label>
+        <p class="text-xs leading-relaxed text-gray-500">Je bankrekening wordt veilig gecontroleerd. Voor uitbetaling kan een verificatie met een kleine centoverschrijving nodig zijn.</p>
+      </div>
+
+      <div id="rememberRow" class="flex items-center justify-between gap-3 text-sm text-gray-600">
+        <label for="rememberMe" class="flex flex-1 items-center gap-2">
+          <input type="checkbox" id="rememberMe" class="h-4 w-4 rounded border-gray-300 accent-indigo-600">
+          <span id="rememberLabel">Ingelogd blijven</span>
+        </label>
+        <a id="forgotPasswordLink" href="wachtwoord-reset.html?role=werknemer" class="text-sm font-semibold text-indigo-600 hover:text-indigo-800">Wachtwoord vergeten?</a>
+      </div>
+
+      <button type="submit" id="submitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-xl transition shadow-md text-sm mt-2">
+        Inloggen
+      </button>
+      <div id="registrationTerms" class="hidden space-y-3 text-sm text-indigo-950">
+        <label class="flex items-start gap-3"><input type="checkbox" data-registration-term class="mt-1 h-5 w-5 shrink-0 rounded border-gray-400"><span>Ik ga akkoord met de <a href="support.html" class="font-bold text-blue-600">gebruikersvoorwaarden</a></span></label>
+        <label class="flex items-start gap-3"><input type="checkbox" data-registration-term class="mt-1 h-5 w-5 shrink-0 rounded border-gray-400"><span>Ik ga akkoord met de <a href="verwerkingsovereenkomst.html" target="_blank" rel="noopener" class="font-bold text-blue-600">verwerkingsovereenkomst</a></span></label>
+        <label id="bureauTerms" class="hidden flex items-start gap-3"><input type="checkbox" id="bureauComplianceAccepted" class="mt-1 h-5 w-5 shrink-0 rounded border-gray-400"><span>Ik verklaar dat mijn bureau werkgeversverantwoordelijkheid, loonadministratie en belastingafdrachten draagt. Ik benader of werf geen ZekerFlex-klanten, opdrachtgevers of werknemers buiten het platform en houd persoonsgegevens en acquisitie-informatie geheim.</span></label>
+      </div>
+      <p id="companyAccountPrompt" class="hidden text-center text-sm font-bold text-blue-600"><button type="button" onclick="toggleMode()">Mijn bedrijf heeft al een account</button></p>
+      <p id="companySupport" class="mt-2 text-sm text-indigo-950">Problemen met inloggen? <a href="support.html">Neem contact op met support</a></p>
+      <p id="companyRegisterPrompt" class="hidden mt-4 text-center text-sm text-indigo-950">Nog geen opdrachtgeversaccount? <button type="button" onclick="toggleMode()">Registreer nu</button></p>
+      <div class="grid grid-cols-2 gap-2 pt-2">
+        <a href="werknemer-dashboard.html?demo=werknemer" class="rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-center text-xs font-bold text-indigo-700">Demo werknemer</a>
+        <a href="dashboard.html?demo=bedrijf" class="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-center text-xs font-bold text-emerald-700">Demo bedrijf</a>
+        <a href="bureau-dashboard.html?demo=bureau_partner" class="rounded-xl border border-cyan-200 bg-cyan-50 px-3 py-2 text-center text-xs font-bold text-cyan-700">Demo Bureau Partner</a>
+      </div>
+    </form>
+
+    <section id="verificationPanel" aria-live="polite">
+      <div class="text-center mb-8">
+        <h1 class="text-3xl font-extrabold">Check je e-mail</h1>
+        <p class="mt-5 text-base leading-relaxed text-indigo-950">We hebben een verificatiecode gestuurd naar<br><strong id="verificationEmail"></strong></p>
+      </div>
+      <div id="verificationCode" aria-label="Verificatiecode">
+        <input type="text" inputmode="numeric" maxlength="1" aria-label="Cijfer 1" autocomplete="one-time-code">
+        <input type="text" inputmode="numeric" maxlength="1" aria-label="Cijfer 2">
+        <input type="text" inputmode="numeric" maxlength="1" aria-label="Cijfer 3">
+        <input type="text" inputmode="numeric" maxlength="1" aria-label="Cijfer 4">
+        <input type="text" inputmode="numeric" maxlength="1" aria-label="Cijfer 5">
+        <input type="text" inputmode="numeric" maxlength="1" aria-label="Cijfer 6">
+      </div>
+      <button type="button" id="verifyCodeButton" class="verification-submit mt-8 w-full rounded-xl py-3 font-bold">Verifiëren</button>
+      <p class="resend-help mt-12">Geen code ontvangen? <button type="button" id="resendCodeButton">Verstuur de code opnieuw</button> of controleer je spam folder.</p>
+      <p class="verification-support">Problemen met inloggen? <a href="support.html">Neem contact op met support</a></p>
+      <p id="verificationMessage" class="hidden mt-4 rounded-xl p-3 text-sm"></p>
+    </section>
+
+    <!-- Switch tussen Inloggen / Registreren -->
+    <div class="text-center mt-6 border-t border-gray-100 pt-4">
+      <button onclick="toggleMode()" id="switchBtn" class="text-xs text-indigo-600 hover:text-indigo-800 font-semibold">
+        Maak een account aan bij ZekerFlex
+      </button>
+    </div>
+
+    <div class="company-visual" aria-hidden="true"></div>
+
+  </div>
+
+  <script src="support-widget.js?v=3"></script>
+
+  <script>
+    const SUPABASE_URL = 'https://cfkzfdqlcfifrukjdvnj.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_KoGEquVbS_OIsoTWchG8Qw_Q6vJWJS8';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let isSignUp = false;
+    const searchParams = new URLSearchParams(window.location.search);
+    const requestedRole = searchParams.get('role');
+    const forceRoleChoice = searchParams.get('choose') === '1';
+    let selectedRole = ['opdrachtgever', 'bureau_partner'].includes(requestedRole) ? requestedRole : 'werknemer';
+    let pendingLoginEmail = '';
+    let pendingLoginRole = '';
+
+    const rememberedRole = localStorage.getItem('zekerflex_role');
+    const rememberedEmail = localStorage.getItem('zekerflex_email');
+    const rememberPreference = localStorage.getItem('zekerflex_remember') === 'true';
+    let loginLanguage = 'nl';
+    let roleChoiceMode = forceRoleChoice || (!requestedRole && !rememberedRole);
+    if (roleChoiceMode) document.body.classList.add('role-pick-only');
+    if (!requestedRole && rememberedRole) selectedRole = rememberedRole;
+    if (rememberedEmail) document.getElementById('email').value = rememberedEmail;
+    document.getElementById('rememberMe').checked = rememberPreference;
+
+    function updateLoginLanguage(language) {
+      loginLanguage = language;
+      const english = language === 'en';
+      document.getElementById('welcomeTitle').textContent = isSignUp && selectedRole === 'opdrachtgever'
+        ? (english ? 'Sign up as an employer' : 'Meld je aan als opdrachtgever')
+        : (english ? 'Welcome to ZekerFlex' : 'Welkom bij ZekerFlex');
+      document.getElementById('emailLabel').textContent = english
+        ? 'Email address'
+        : (isSignUp && selectedRole === 'opdrachtgever' ? 'Zakelijk e-mailadres' : 'E-mailadres');
+      document.getElementById('passwordLabel').textContent = english ? 'Password' : 'Wachtwoord';
+      document.getElementById('rememberLabel').textContent = english ? 'Keep me logged in' : 'Ingelogd blijven';
+      document.getElementById('email').placeholder = english ? 'company@example.com' : 'bedrijf@voorbeeld.nl';
+      document.getElementById('forgotPasswordLink').textContent = english ? 'Forgot password?' : 'Wachtwoord vergeten?';
+      document.getElementById('submitBtn').textContent = isSignUp && selectedRole === 'opdrachtgever'
+        ? (english ? 'Register' : 'Registreren')
+        : isSignUp
+          ? (english ? 'Create account' : 'Account Aanmaken')
+        : (english ? 'Log in' : 'Inloggen');
+      document.getElementById('companySupport').innerHTML = english
+        ? `${isSignUp ? 'Having trouble registering?' : 'Having trouble logging in?'} <a href="support.html">Contact support</a>`
+        : `${isSignUp ? 'Problemen met registreren?' : 'Problemen met inloggen?'} <a href="support.html">Neem contact op met support</a>`;
+      document.getElementById('companyRegisterPrompt').innerHTML = english
+        ? 'No employer account yet? <button type="button" onclick="toggleMode()">Register now</button>'
+        : 'Nog geen opdrachtgeversaccount? <button type="button" onclick="toggleMode()">Registreer nu</button>';
+      document.getElementById('companyRegisterPrompt').querySelector('button').style.color = '#2563eb';
+    }
+
+    document.getElementById('languageChoice').addEventListener('change', (event) => updateLoginLanguage(event.target.value));
+    document.getElementById('togglePassword').addEventListener('click', () => {
+      const passwordInput = document.getElementById('password');
+      const isVisible = passwordInput.type === 'text';
+      passwordInput.type = isVisible ? 'password' : 'text';
+      document.getElementById('showPasswordIcon').classList.toggle('hidden', !isVisible);
+      document.getElementById('hidePasswordIcon').classList.toggle('hidden', isVisible);
+      document.getElementById('togglePassword').setAttribute('aria-label', isVisible ? 'Wachtwoord tonen' : 'Wachtwoord verbergen');
+      document.getElementById('togglePassword').title = isVisible ? 'Wachtwoord tonen' : 'Wachtwoord verbergen';
+    });
+    document.getElementById('toggleConfirmPassword').addEventListener('click', () => {
+      const input = document.getElementById('confirmPassword');
+      const isVisible = input.type === 'text';
+      input.type = isVisible ? 'password' : 'text';
+      document.getElementById('toggleConfirmPassword').setAttribute('aria-label', isVisible ? 'Wachtwoord tonen' : 'Wachtwoord verbergen');
+      document.getElementById('toggleConfirmPassword').title = isVisible ? 'Wachtwoord tonen' : 'Wachtwoord verbergen';
+    });
+
+    function validateRegistrationPasswords() {
+      const password = document.getElementById('password').value;
+      const confirmation = document.getElementById('confirmPassword').value;
+      const passwordValidation = document.getElementById('passwordValidation');
+      const confirmValidation = document.getElementById('confirmValidation');
+      const invalidPart = password.length < 8
+        ? 'Voer minimaal 8 tekens in.'
+        : !/[a-z]/.test(password)
+          ? 'Voer minimaal één kleine letter in.'
+          : !/[A-Z]/.test(password)
+          ? 'Voer minimaal één hoofdletter in.'
+          : !/\d/.test(password)
+          ? 'Voer minimaal één cijfer in.'
+          : !/[^A-Za-z0-9]/.test(password)
+            ? 'Voer minimaal één speciaal teken in.'
+            : '';
+      passwordValidation.textContent = invalidPart;
+      passwordValidation.classList.toggle('hidden', !invalidPart);
+      const mismatch = confirmation && password !== confirmation;
+      confirmValidation.textContent = mismatch ? 'De wachtwoorden komen niet overeen.' : '';
+      confirmValidation.classList.toggle('hidden', !mismatch);
+    }
+
+    document.getElementById('password').addEventListener('input', validateRegistrationPasswords);
+    document.getElementById('confirmPassword').addEventListener('input', validateRegistrationPasswords);
+    document.getElementById('phoneNumber').addEventListener('input', validatePhoneNumber);
+
+    function validatePhoneNumber() {
+      const phoneInput = document.getElementById('phoneNumber');
+      const digits = phoneInput.value.replace(/\D/g, '');
+      const phoneValidation = document.getElementById('phoneValidation');
+      const isRegistration = isSignUp && selectedRole === 'opdrachtgever';
+      const invalid = isRegistration && digits.length !== 9;
+      phoneValidation.textContent = invalid
+        ? digits.length < 9 ? `Voer nog ${9 - digits.length} cijfers in.` : 'Gebruik precies 9 cijfers.'
+        : '';
+      phoneValidation.classList.toggle('hidden', !invalid);
+    }
+
+    function validateNameFields() {
+      const firstName = document.getElementById('fullName').value.trim();
+      const lastName = document.getElementById('lastName').value.trim();
+      document.getElementById('firstNameValidation').classList.toggle('hidden', Boolean(firstName));
+      document.getElementById('lastNameValidation').classList.toggle('hidden', Boolean(lastName));
+      return Boolean(firstName && lastName);
+    }
+
+    document.getElementById('fullName').addEventListener('input', validateNameFields);
+    document.getElementById('lastName').addEventListener('input', validateNameFields);
+
+    const verificationInputs = [...document.querySelectorAll('#verificationCode input')];
+    verificationInputs.forEach((input, index) => input.addEventListener('input', () => {
+      input.value = input.value.replace(/\D/g, '').slice(-1);
+      if (input.value && verificationInputs[index + 1]) verificationInputs[index + 1].focus();
+    }));
+    document.getElementById('verifyCodeButton').addEventListener('click', verifyLoginCode);
+    document.getElementById('resendCodeButton').addEventListener('click', async () => {
+      const resendButton = document.getElementById('resendCodeButton');
+      resendButton.disabled = true;
+      resendButton.textContent = 'Nieuwe code verzenden...';
+      verificationInputs.forEach((input) => { input.value = ''; });
+      await sendLoginCode(true);
+      resendButton.disabled = false;
+      resendButton.textContent = 'Verstuur de code opnieuw';
+      verificationInputs[0].focus();
+    });
+
+    function maskEmail(email) {
+      const [name, domain] = email.split('@');
+      return `${name.slice(0, 1)}${'*'.repeat(Math.max(2, name.length - 1))}@${domain}`;
+    }
+
+    function getTrustedDeviceKey(email) {
+      return `zekerflex_verified_device_${email.toLowerCase()}`;
+    }
+
+    function rememberEmployerAccount(email) {
+      if (selectedRole !== 'opdrachtgever') return;
+      localStorage.setItem('zekerflex_last_employer', JSON.stringify({ email, role: selectedRole, dashboard: 'dashboard.html?view=start' }));
+    }
+
+    function redirectAfterLogin(email, role) {
+      const isAdmin = email === 'adminbriando@zekerflex.nl';
+      window.location.href = isAdmin || role === 'opdrachtgever' ? 'dashboard.html?view=start' : role === 'bureau_partner' ? 'bureau-dashboard.html' : 'werknemer-dashboard.html';
+    }
+
+    async function sendLoginCode(isResend = false) {
+      await supabaseClient.auth.signOut();
+      const { error } = await supabaseClient.auth.signInWithOtp({ email: pendingLoginEmail, options: { shouldCreateUser: false } });
+      const verificationMessage = document.getElementById('verificationMessage');
+      if (error) {
+        verificationMessage.textContent = `Code verzenden mislukt: ${error.message}`;
+        verificationMessage.className = 'mt-4 rounded-xl bg-rose-50 p-3 text-sm text-rose-700';
+        return false;
+      }
+      verificationMessage.textContent = isResend ? 'Er is een nieuwe code verzonden.' : 'Controleer je e-mail voor de verificatiecode.';
+      verificationMessage.className = 'mt-4 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-700';
+      return true;
+    }
+
+    async function verifyLoginCode() {
+      const token = verificationInputs.map((input) => input.value).join('');
+      if (token.length !== 6) {
+        const verificationMessage = document.getElementById('verificationMessage');
+        verificationMessage.textContent = 'Vul de 6-cijferige verificatiecode in.';
+        verificationMessage.className = 'mt-4 rounded-xl bg-rose-50 p-3 text-sm text-rose-700';
+        return;
+      }
+      const button = document.getElementById('verifyCodeButton');
+      button.disabled = true;
+      button.textContent = 'Controleren...';
+      const { error } = await supabaseClient.auth.verifyOtp({ email: pendingLoginEmail, token, type: 'email' });
+      if (error) {
+        const verificationMessage = document.getElementById('verificationMessage');
+        verificationMessage.textContent = 'De code is onjuist of verlopen. Vraag een nieuwe code aan.';
+        verificationMessage.className = 'mt-4 rounded-xl bg-rose-50 p-3 text-sm text-rose-700';
+        button.disabled = false;
+        button.textContent = 'Verifiëren';
+        return;
+      }
+      localStorage.setItem(getTrustedDeviceKey(pendingLoginEmail), 'true');
+      redirectAfterLogin(pendingLoginEmail, pendingLoginRole);
+    }
+
+    function selectRole(role, revealForm = true) {
+      selectedRole = role;
+      if (revealForm) {
+        roleChoiceMode = false;
+        document.body.classList.remove('role-pick-only');
+        document.body.classList.add('role-selected');
+        localStorage.setItem('zekerflex_role', role);
+      }
+      document.body.classList.toggle('company-login', ['opdrachtgever', 'bureau_partner'].includes(role) && revealForm);
+      const isBusinessRole = ['opdrachtgever', 'bureau_partner'].includes(role);
+      const roleLabel = role === 'bureau_partner' ? 'bureau partner' : role === 'opdrachtgever' ? 'opdrachtgever' : 'werknemer';
+      document.getElementById('formTitle').textContent = isSignUp
+        ? role === 'opdrachtgever' ? 'Registreer je vrijblijvend. Je betaalt pas zodra een freelancer voor jou gewerkt heeft.' : `Maak een ${roleLabel}account aan`
+        : role === 'opdrachtgever' ? 'Vul je gegevens in.' : `Log in als ${roleLabel}`;
+      if (loginLanguage === 'en') {
+        document.getElementById('formTitle').textContent = isSignUp
+          ? `Create a ${role === 'opdrachtgever' ? 'employer' : 'worker'} account`
+          : role === 'opdrachtgever' ? 'Enter your details.' : 'Log in as worker';
+      }
+      document.getElementById('welcomeTitle').classList.toggle('hidden', !isBusinessRole);
+      document.getElementById('welcomeTitle').textContent = isSignUp && role === 'bureau_partner' ? 'Meld je aan als Bureau Partner' : isSignUp ? 'Meld je aan als opdrachtgever' : (loginLanguage === 'en' ? 'Welcome to ZekerFlex' : 'Welkom bij ZekerFlex');
+      document.getElementById('companyRegisterPrompt').classList.toggle('hidden', !isBusinessRole || isSignUp);
+      document.getElementById('workerRoleBtn').className = role === 'werknemer'
+        ? 'border-2 border-indigo-500 bg-indigo-50 text-indigo-700 rounded-xl p-3 text-left transition'
+        : 'border-2 border-gray-200 bg-white text-gray-600 rounded-xl p-3 text-left transition';
+      document.getElementById('employerRoleBtn').className = role === 'opdrachtgever'
+        ? 'border-2 border-emerald-500 bg-emerald-50 text-emerald-700 rounded-xl p-3 text-left transition'
+        : 'border-2 border-gray-200 bg-white text-gray-600 rounded-xl p-3 text-left transition';
+      document.getElementById('bureauRoleBtn').className = role === 'bureau_partner'
+        ? 'border-2 border-cyan-500 bg-cyan-50 text-cyan-700 rounded-xl p-3 text-left transition'
+        : 'border-2 border-gray-200 bg-white text-gray-600 rounded-xl p-3 text-left transition';
+      document.getElementById('forgotPasswordLink').href = `wachtwoord-reset.html?role=${role}`;
+      const confirmField = document.getElementById('confirmPasswordField');
+      confirmField.classList.toggle('hidden', !isSignUp);
+      document.getElementById('confirmPassword').required = isSignUp;
+      document.getElementById('passwordHint').classList.toggle('hidden', !isSignUp);
+      document.getElementById('passwordValidation').classList.add('hidden');
+      const registrationFields = document.getElementById('registrationFields');
+      const companyFields = ['companyField', 'kvkField', 'vatField'];
+      registrationFields.classList.toggle('hidden', !isSignUp);
+      document.getElementById('registrationTerms').classList.toggle('hidden', !isSignUp || !isBusinessRole);
+      document.getElementById('bureauTerms').classList.toggle('hidden', !isSignUp || role !== 'bureau_partner');
+      document.getElementById('businessEmailNotice').classList.add('hidden');
+      document.querySelectorAll('[data-registration-term]').forEach((checkbox) => {
+        checkbox.required = isSignUp && isBusinessRole;
+      });
+      companyFields.forEach((id) => document.getElementById(id).classList.toggle('hidden', !isBusinessRole));
+      ['snaField', 'wttaField'].forEach((id) => document.getElementById(id).classList.toggle('hidden', role !== 'bureau_partner'));
+      document.getElementById('registrationIntro').textContent = role === 'bureau_partner' ? 'Bureau- en compliancegegevens' : role === 'opdrachtgever' ? 'Bedrijfsgegevens voor verificatie' : 'Persoonlijke gegevens voor je profiel';
+      document.getElementById('fullNameLabel').textContent = role === 'opdrachtgever' && isSignUp ? 'Voornaam' : 'Volledige naam';
+      document.getElementById('companySupport').firstChild.textContent = isSignUp ? 'Problemen met registreren? ' : 'Problemen met inloggen? ';
+      ['fullName', 'lastName', 'phoneNumber'].forEach((id) => { document.getElementById(id).required = isSignUp; });
+      document.getElementById('ibanNumber').required = isSignUp && role !== 'opdrachtgever';
+      document.getElementById('companyName').required = isSignUp && isBusinessRole;
+      ['kvkNumber', 'vatNumber'].forEach((id) => { document.getElementById(id).required = false; });
+    }
+
+    selectRole(selectedRole, Boolean(requestedRole || (rememberedRole && !forceRoleChoice)));
+
+    async function redirectIfAlreadyLoggedIn() {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) return;
+      const role = session.user.user_metadata?.role || selectedRole;
+      const isAdmin = session.user.email === 'adminbriando@zekerflex.nl' || role === 'admin';
+      window.location.href = isAdmin || role === 'opdrachtgever' ? 'dashboard.html?view=start' : role === 'bureau_partner' ? 'bureau-dashboard.html' : 'werknemer-dashboard.html';
+    }
+    redirectIfAlreadyLoggedIn();
+
+    const emailInput = document.getElementById('email');
+    emailInput.addEventListener('input', () => {
+      const email = emailInput.value.trim();
+      emailInput.setCustomValidity(email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)
+        ? 'E-mailadres is ongeldig'
+        : '');
+      if (email && isBusinessEmail(email)) document.getElementById('businessEmailNotice').classList.add('hidden');
+    });
+
+    function isBusinessEmail(email) {
+      const domain = email.toLowerCase().split('@')[1] || '';
+      const personalDomains = ['gmail.com', 'hotmail.com', 'hotmail.nl', 'outlook.com', 'outlook.nl', 'live.com', 'yahoo.com', 'yahoo.nl', 'icloud.com', 'proton.me', 'protonmail.com'];
+      return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) && !personalDomains.includes(domain);
+    }
+
+    function isDemoRegistration() {
+      return ['email', 'companyName', 'fullName', 'lastName'].some((id) => document.getElementById(id).value.toLowerCase().includes('demo'));
+    }
+
+    const companySearchResults = document.getElementById('companySearchResults');
+    const companyNameInput = document.getElementById('companyName');
+    const kvkNumberInput = document.getElementById('kvkNumber');
+    const kvkCompanies = [
+      { name: 'Jeugdharmonie-orkest stad Brunssum', kvk: '89080602', address: 'Maanstraat Brunssum' },
+      { name: 'B&B Vastgoedbeheer & Onderhoud', kvk: '88413810', address: 'Philippusweg Schiedam' },
+      { name: 'Ergon International B.V.', kvk: '75786273', address: 'Emmastraat Breda' },
+      { name: 'EquitasZorg B.V.', kvk: '30247974', address: 'Markt Nieuwegein' },
+      { name: 'Bouwbedrijf Zeker B.V.', kvk: '91234567', address: 'Stationsweg Utrecht' },
+      { name: 'Brabant Flexgroep', kvk: '92345678', address: 'Kanaaldijk Eindhoven' }
+    ];
+
+    function searchKvkCompanies() {
+      const query = companyNameInput.value.trim().toLowerCase();
+      companySearchResults.replaceChildren();
+      if (!query) {
+        companySearchResults.classList.add('hidden');
+        return;
+      }
+
+      const matches = kvkCompanies.filter((company) => `${company.name} ${company.address} ${company.kvk}`.toLowerCase().includes(query));
+      if (!matches.length) {
+        const emptyResult = document.createElement('div');
+        emptyResult.className = 'company-search-empty';
+        emptyResult.textContent = 'Geen bedrijven gevonden in het Handelsregister.';
+        companySearchResults.append(emptyResult);
+      } else {
+        matches.forEach((company) => {
+          const result = document.createElement('button');
+          result.type = 'button';
+          result.className = 'company-search-result';
+          result.setAttribute('role', 'option');
+          result.innerHTML = `<strong>${company.name}</strong><small>KVK Nr.${company.kvk} · ${company.address}</small>`;
+          result.addEventListener('click', () => {
+            companyNameInput.value = company.name;
+            kvkNumberInput.value = company.kvk;
+            companySearchResults.classList.add('hidden');
+          });
+          companySearchResults.append(result);
+        });
+      }
+      companySearchResults.classList.remove('hidden');
+    }
+
+    companyNameInput.addEventListener('input', searchKvkCompanies);
+    document.getElementById('companySearchButton').addEventListener('click', searchKvkCompanies);
+
+    function toggleMode() {
+      isSignUp = !isSignUp;
+      selectRole(selectedRole);
+      document.getElementById('submitBtn').textContent = isSignUp && selectedRole === 'opdrachtgever' ? 'Registreren' : (isSignUp ? 'Account Aanmaken' : 'Inloggen');
+      document.getElementById('switchBtn').textContent = isSignUp ? 'Al een account? Log hier in' : 'Maak een account aan bij ZekerFlex';
+      updateLoginLanguage(loginLanguage);
+    }
+
+    async function handleAuth(event) {
+      event.preventDefault();
+      const enteredEmail = document.getElementById('email').value.trim().toLowerCase();
+      const businessEmailNotice = document.getElementById('businessEmailNotice');
+      if (isSignUp && ['opdrachtgever', 'bureau_partner'].includes(selectedRole) && !isDemoRegistration() && !isBusinessEmail(enteredEmail)) {
+        businessEmailNotice.classList.remove('hidden');
+        emailInput.focus();
+        return;
+      }
+      const email = enteredEmail;
+      const password = document.getElementById('password').value;
+      const submitBtn = document.getElementById('submitBtn');
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Verwerken...';
+
+      if (isSignUp) {
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        const firstName = document.getElementById('fullName').value.trim();
+        const lastName = document.getElementById('lastName').value.trim();
+        const fullName = `${firstName} ${lastName}`.trim();
+        const companyName = document.getElementById('companyName').value.trim();
+        const kvkNumber = document.getElementById('kvkNumber').value.trim();
+        const vatNumber = document.getElementById('vatNumber').value.trim();
+        const isBureauPartner = selectedRole === 'bureau_partner';
+        validatePhoneNumber();
+        const phoneDigits = document.getElementById('phoneNumber').value.replace(/\D/g, '');
+        const namesValid = selectedRole !== 'opdrachtgever' || validateNameFields();
+        if (!namesValid) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Registreren';
+          return;
+        }
+        if (!fullName || (['opdrachtgever', 'bureau_partner'].includes(selectedRole) && !companyName)) {
+          alert(selectedRole === 'opdrachtgever'
+            ? 'Vul je voornaam en bedrijfsnaam in.'
+            : 'Vul je volledige naam in.');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Account Aanmaken';
+          return;
+        }
+        if (['opdrachtgever', 'bureau_partner'].includes(selectedRole) && phoneDigits.length !== 9) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Registreren';
+          return;
+        }
+        if (password.length < 8 || !/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/\d/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+          validateRegistrationPasswords();
+          submitBtn.disabled = false;
+          submitBtn.textContent = selectedRole === 'opdrachtgever' ? 'Registreren' : 'Account Aanmaken';
+          return;
+        }
+        if (password !== confirmPassword) {
+          validateRegistrationPasswords();
+          submitBtn.disabled = false;
+          submitBtn.textContent = selectedRole === 'opdrachtgever' ? 'Registreren' : 'Account Aanmaken';
+          return;
+        }
+        if (isBureauPartner && (!kvkNumber || document.getElementById('snaStatus').value !== 'verified' || document.getElementById('wttaStatus').value !== 'verified' || !document.getElementById('bureauComplianceAccepted').checked)) {
+          alert('Een Bureau Partner moet een KvK-nummer, geldig SNA-keurmerk, bevestigde Wtta-status en akkoord op de voorwaarden invullen.');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Registreren';
+          return;
+        }
+        const { data, error } = await supabaseClient.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              role: selectedRole,
+              display_name: fullName,
+              phone: `${document.getElementById('countryCode').value} ${document.getElementById('phoneNumber').value.trim()}`,
+              iban: document.getElementById('ibanNumber').value,
+              company_name: companyName,
+              kvk_number: kvkNumber,
+              vat_number: vatNumber,
+              sna_status: isBureauPartner ? document.getElementById('snaStatus').value : 'niet van toepassing',
+              wtta_status: isBureauPartner ? document.getElementById('wttaStatus').value : 'niet van toepassing',
+              compliance_accepted_at: isBureauPartner ? new Date().toISOString() : null,
+              compliance_version: isBureauPartner ? 'bureau-partner-v1' : null,
+              verification_status: 'in behandeling',
+              id_verification_status: 'in behandeling',
+              bank_verification_status: 'in behandeling',
+              vat_verification_status: selectedRole === 'opdrachtgever' ? 'in behandeling' : 'niet van toepassing'
+            },
+            emailRedirectTo: `${window.location.origin}/email-bevestigd.html?role=${selectedRole}`
+          }
+        });
+        if (error) {
+          const errorMessage = error.message.toLowerCase();
+          const message = errorMessage.includes('already registered')
+            ? 'Dit e-mailadres bestaat al. Log in of gebruik Wachtwoord vergeten.'
+            : errorMessage.includes('email address') && errorMessage.includes('invalid')
+              ? 'Dit e-mailadres kan niet worden gebruikt. Controleer of het zakelijke domein bestaat en bij dit e-mailadres hoort.'
+              : `Registratie fout: ${error.message}`;
+          alert(message);
+        } else {
+          if (document.getElementById('rememberMe').checked) {
+            localStorage.setItem('zekerflex_email', email);
+            localStorage.setItem('zekerflex_role', selectedRole);
+            localStorage.setItem('zekerflex_remember', 'true');
+          } else {
+            localStorage.removeItem('zekerflex_email');
+            localStorage.removeItem('zekerflex_role');
+            localStorage.removeItem('zekerflex_remember');
+          }
+          if (data.session) {
+            rememberEmployerAccount(email);
+            const isAdmin = email === 'adminbriando@zekerflex.nl';
+            window.location.href = isAdmin || selectedRole === 'opdrachtgever' ? 'dashboard.html?view=start' : selectedRole === 'bureau_partner' ? 'bureau-dashboard.html' : 'werknemer-dashboard.html';
+          } else {
+            alert(selectedRole === 'opdrachtgever'
+              ? 'Welkom bij ZekerFlex!\n\nStatus: account aangemaakt. Open de link in je e-mail. Stel daarna je account in en ga aan de slag.'
+              : 'Account aangemaakt. Open de link in je e-mail. Daarna word je automatisch ingelogd en naar je dashboard gestuurd.');
+          }
+        }
+      } else {
+        if (selectedRole === 'opdrachtgever' && email === 'demo@zekerflex.nl' && password === 'demo') {
+          localStorage.setItem('zekerflex_last_employer', JSON.stringify({ email, role: selectedRole, dashboard: 'dashboard.html?demo=bedrijf&view=start' }));
+          window.location.href = 'dashboard.html?demo=bedrijf&view=start';
+          return;
+        }
+        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) {
+          const loginMessage = error.message.toLowerCase().includes('invalid login credentials')
+            ? 'Account niet bekend'
+            : `Inloggen mislukt: ${error.message}`;
+          alert(loginMessage);
+        } else {
+          if (document.getElementById('rememberMe').checked) {
+            localStorage.setItem('zekerflex_email', email);
+            localStorage.setItem('zekerflex_role', selectedRole);
+            localStorage.setItem('zekerflex_remember', 'true');
+          } else {
+            localStorage.removeItem('zekerflex_email');
+            localStorage.removeItem('zekerflex_role');
+            localStorage.removeItem('zekerflex_remember');
+          }
+          pendingLoginEmail = email;
+          pendingLoginRole = selectedRole;
+          rememberEmployerAccount(email);
+          if (localStorage.getItem(getTrustedDeviceKey(email)) === 'true') {
+            redirectAfterLogin(email, selectedRole);
+          } else {
+            document.getElementById('verificationEmail').textContent = maskEmail(email);
+            document.getElementById('authForm').classList.add('hidden');
+            document.getElementById('verificationPanel').classList.add('active');
+            await sendLoginCode();
+            verificationInputs[0].focus();
+          }
+        }
+      }
+
+      submitBtn.disabled = false;
+      submitBtn.textContent = isSignUp ? 'Account Aanmaken' : 'Inloggen';
+    }
+
+    document.getElementById('authForm').addEventListener('submit', handleAuth);
+  </script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <link rel="stylesheet" href="zf-atmosphere.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ZekerFlex - Admin module</title>
+  <style>
+    :root { --ink:#152238; --muted:#64748b; --line:#dbe4ec; --brand:#0f766e; --bg:#eef3f7; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font:14px "Trebuchet MS", "Segoe UI", sans-serif; }
+    main { width:min(980px,100%); margin:auto; padding:28px 20px 70px; }
+    a { color:var(--brand); font-weight:700; text-decoration:none; }
+    .eyebrow { margin:30px 0 6px; color:var(--brand); font-size:12px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
+    h1 { margin:0; font-size:32px; }
+    h2 { margin:0 0 8px; }
+    .muted { color:var(--muted); line-height:1.55; }
+    .panel { margin-top:20px; padding:22px; border:1px solid var(--line); border-radius:12px; background:#fff; box-shadow:0 16px 40px #15223814; }
+    .module-head { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; }
+    .badge { flex:none; padding:6px 10px; border-radius:999px; background:#e4f7ef; color:#13795b; font-size:11px; font-weight:800; text-transform:uppercase; }
+    .action-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:18px; }
+    .action { display:grid; gap:8px; padding:16px; border:1px solid var(--line); border-radius:10px; background:#f8fbfc; }
+    .action strong { font-size:15px; }
+    button { min-height:38px; width:max-content; border:1px solid var(--brand); border-radius:7px; background:var(--brand); color:#fff; padding:8px 12px; cursor:pointer; font-weight:700; }
+    button:hover { filter:saturate(1.1); transform:translateY(-1px); }
+    .status { margin-top:18px; padding:12px; border-left:4px solid var(--brand); background:#eefaf7; color:#155e59; }
+    @media(max-width:650px) { .module-head, .action-grid { display:grid; grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <main>
+    <a href="admin.html">&larr; Terug naar Admin overzicht</a>
+    <p class="eyebrow">Admin module</p>
+    <section class="panel">
+      <div class="module-head"><div><h1 id="moduleTitle">Module</h1><p id="moduleInfo" class="muted"></p></div><span id="moduleBadge" class="badge">Actief</span></div>
+      <div id="actionGrid" class="action-grid"></div>
+      <p id="moduleStatus" class="status" role="status">Kies een actie om te starten.</p>
+    </section>
+  </main>
+  <script>
+    const modules = {
+      'Freelancers, opdrachtgevers en profielen': ['Freelancers bekijken', 'Opdrachtgevers bekijken', 'Rollen beheren', 'Rechten beheren', 'Profielen goedkeuren'],
+      'KYC/AML, KvK en BTW': ['KYC-check uitvoeren', 'AML-check uitvoeren', 'KvK-validatie uitvoeren', 'BTW-validatie uitvoeren', 'Modelovereenkomst controleren'],
+      'Leeftijdsgrenzen en blokkeerlijst': ['Leeftijdsgrenzen instellen', 'Blokkeerlijst openen', 'Accountstatus bijwerken'],
+      'Klussen aanmaken en modereren': ['Klus aanmaken', 'Klus goedkeuren', 'Klus verwijderen', 'Klusstatus bewaken'],
+      'Spoedklussen, categorieën en geofencing': ['Spoedklus beheren', 'Categorieën beheren', 'Geofencing instellen'],
+      'Handmatige en automatische matching': ['Handmatig toewijzen', 'Automatisch koppelen'],
+      'Filters, zoektools en wachtlijsten': ['Filters beheren', 'Zoektools gebruiken', 'Wachtlijsten beheren'],
+      'Urenstaten en declaraties': ['Urenstaat accorderen', 'Uren corrigeren', 'Declaratie beoordelen', 'Onkosten controleren'],
+      'iDEAL, Stripe en Adyen': ['iDEAL-koppeling testen', 'Stripe-koppeling testen', 'Adyen-koppeling testen', 'Automatische uitbetalingen controleren'],
+      'Facturen en boekhoud-APIs': ['Factuur genereren', 'Creditnota maken', 'Platformcommissie instellen', 'Exact synchroniseren', 'Moneybird synchroniseren'],
+      'Cashflow en financiering': ['Cashflow voorspellen', 'Factoring beheren', 'Debiteuren beheren', 'BTW-verlegging controleren', 'Micro-leningen beheren'],
+      'Loonheffingen en Wet DBA': ['Loonheffingen controleren', 'Wet DBA-risico analyseren'],
+      'Arbeidstijden en belastingregels': ['Arbeidstijdenwet controleren', 'Minderjarigenregels controleren', 'OSS-BTW controleren', 'Bronbelasting controleren'],
+      'Disputes en ticketing': ['Urenconflict openen', 'Ticketing beheren'],
+      'Chatmoderatie en SLA': ['Chatmoderatie uitvoeren', 'SLA monitoren', 'Interne notitie toevoegen'],
+      'Campagnes en sjablonen': ['Push-notificatie versturen', 'E-mailcampagne beheren', 'SMS/WhatsApp-bericht versturen', 'Sjablonen beheren'],
+      'Referral, loyaliteit en experimenten': ['Referral-programma beheren', 'Loyaliteitsbeloning instellen', 'A/B-test uitvoeren'],
+      'Realtime KPI-dashboard': ['Omzet bekijken', 'GMV bekijken', 'Conversiecijfers bekijken', 'Churn rate bekijken'],
+      'Rapportages en exports': ['Financiële rapportage maken', 'Rapport exporteren'],
+      'RBAC, audit logs en 2FA': ['RBAC-rollen beheren', 'RBAC-rechten beheren', 'Audit logs bekijken', 'IP-whitelist beheren', '2FA beheren'],
+      'AVG/GDPR en feature flags': ['AVG/GDPR-verwijdering beoordelen', 'Feature flags beheren', 'Kill switches beheren'],
+      'Impersonatie, error tracking en backups': ['Impersonatie-modus starten', 'Error tracking bekijken', 'Database-backup maken'],
+      'Voorspelling en fraudedetectie': ['Vraag voorspellen', 'Churn voorspellen', 'Fraude detecteren'],
+      'Identity en liveness checks': ['Synthetic identity check uitvoeren', 'Biometrische liveness check uitvoeren'],
+      'Automation, liquidity en event ledger': ['No-code automation beheren', 'Liquidity heatmap bekijken', 'Cryptografische event ledger verifiëren']
+    };
+    const params = new URLSearchParams(location.search);
+    const moduleName = params.get('module');
+    const moduleTitle = document.getElementById('moduleTitle');
+    const moduleInfo = document.getElementById('moduleInfo');
+    const actionGrid = document.getElementById('actionGrid');
+    const moduleStatus = document.getElementById('moduleStatus');
+    const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[char]));
+    const actions = modules[moduleName];
+    if (!actions) {
+      moduleTitle.textContent = 'Module niet gevonden';
+      moduleInfo.textContent = 'Deze admin-optie bestaat niet of de link is ongeldig.';
+      document.getElementById('moduleBadge').textContent = 'Fout';
+      actionGrid.innerHTML = '<a href="admin.html">Terug naar het overzicht</a>';
+    } else {
+      moduleTitle.textContent = moduleName;
+      moduleInfo.textContent = `Beheerinformatie en acties voor ${moduleName.toLowerCase()}. Alle acties worden lokaal als demo uitgevoerd en vastgelegd.`;
+      actionGrid.innerHTML = actions.map((action, index) => `<article class="action"><strong>${esc(action)}</strong><span class="muted">Voer deze moduleactie uit en registreer het resultaat.</span><button type="button" data-action-index="${index}">Uitvoeren</button></article>`).join('');
+      document.querySelectorAll('[data-action-index]').forEach((button) => button.addEventListener('click', () => { const action = actions[Number(button.dataset.actionIndex)]; location.href = `admin-action.html?module=${encodeURIComponent(moduleName)}&action=${encodeURIComponent(action)}`; }));
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <link rel="stylesheet" href="zf-atmosphere.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZekerFlex - Over ons</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root { --ink: #10151f; --paper: #f7f8f5; --line: #dfe5df; --green: #087f72; --mint: #dff5ef; }
+    body { background: var(--paper); color: var(--ink); font-family: Georgia, 'Times New Roman', serif; }
+    .sans { font-family: Arial, Helvetica, sans-serif; }
+    .career-grid { background-image: linear-gradient(rgba(8,127,114,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(8,127,114,.08) 1px, transparent 1px); background-size: 34px 34px; }
+    .job-card { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+    .job-card:hover, .job-card:focus-within { transform: translateY(-4px); border-color: var(--green); box-shadow: 0 18px 35px rgba(16,21,31,.1); }
+    .job-card button { font-family: Arial, Helvetica, sans-serif; }
+    .job-card button[aria-pressed="true"] { background: var(--green); color: white; }
+  </style>
+</head>
+<body class="min-h-screen">
+  <header class="sans sticky top-0 z-40 border-b border-gray-200 bg-white/95 backdrop-blur">
+    <div class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 py-4 sm:px-6 lg:px-8">
+      <a href="index.html" class="flex items-center gap-3 font-black tracking-tight" aria-label="Terug naar ZekerFlex home"><img src="zekerflex-logo.jpeg" alt="ZekerFlex" class="h-10 w-10 rounded-xl object-contain"><span class="text-xl">Zeker<span class="text-emerald-600">Flex</span></span></a>
+      <nav class="flex items-center gap-2 text-sm font-bold" aria-label="Hoofdnavigatie">
+        <a href="index.html" class="hidden rounded-lg px-3 py-2 text-gray-600 hover:bg-gray-100 sm:inline-block">Home</a>
+        <a href="plaats-shift.html" class="hidden rounded-lg px-3 py-2 text-gray-600 hover:bg-gray-100 md:inline-block">Voor bedrijven</a>
+        <a href="over-ons.html#werken-bij" class="rounded-lg bg-emerald-50 px-3 py-2 text-emerald-700">Werken bij</a>
+        <a href="login.html?role=werknemer" class="rounded-lg bg-slate-900 px-3 py-2 text-white hover:bg-slate-700">Aanmelden</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <section class="career-grid overflow-hidden border-b border-emerald-100 bg-emerald-50">
+      <div class="mx-auto grid max-w-7xl items-center gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[1.1fr_.9fr] lg:px-8 lg:py-28">
+        <div>
+          <a href="index.html" class="sans text-sm font-bold text-emerald-700">← Terug naar ZekerFlex</a>
+          <p class="sans mt-10 text-xs font-black uppercase tracking-[.2em] text-emerald-700">Werken bij ZekerFlex</p>
+          <h1 class="mt-4 max-w-3xl text-5xl font-black leading-[.98] tracking-tight text-slate-950 sm:text-7xl">Maak flexibel werk beter voor iedereen.</h1>
+          <p class="mt-7 max-w-2xl text-lg leading-relaxed text-slate-600">Wij bouwen aan een werkwereld waarin mensen zelf kiezen, bedrijven snel kunnen schakelen en afspraken altijd helder blijven. Daar hebben we nieuwsgierige makers en betrokken doeners voor nodig.</p>
+          <a href="#vacatures" class="sans mt-8 inline-flex rounded-xl bg-emerald-700 px-5 py-3 font-bold text-white hover:bg-emerald-800">Bekijk vacatures</a>
+        </div>
+        <div class="relative rounded-[2rem] bg-slate-950 p-5 text-white shadow-2xl sm:p-7">
+          <div class="absolute -right-5 -top-5 h-24 w-24 rounded-full border border-emerald-300/40"></div>
+          <p class="sans text-xs font-bold uppercase tracking-[.18em] text-emerald-300">Ons team</p>
+          <h2 class="mt-16 text-3xl font-black leading-tight">Klein genoeg om elkaar te kennen. Groot genoeg om verschil te maken.</h2>
+          <div class="sans mt-12 grid grid-cols-2 gap-4 border-t border-white/15 pt-5 text-sm"><div><strong class="block text-2xl text-emerald-300">1 missie</strong><span class="text-slate-400">werk menselijker maken</span></div><div><strong class="block text-2xl text-emerald-300">100%</strong><span class="text-slate-400">ruimte voor initiatief</span></div></div>
+        </div>
+      </div>
+    </section>
+    <section class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8"><div class="grid gap-10 lg:grid-cols-[.8fr_1.2fr]"><div><p class="sans text-xs font-black uppercase tracking-[.2em] text-emerald-700">Waarom ZekerFlex</p><h2 class="mt-3 text-4xl font-black tracking-tight">Werk met betekenis en bewegingsruimte.</h2></div><div class="grid gap-5 sm:grid-cols-3"><article class="rounded-2xl border border-gray-200 bg-white p-5"><strong class="sans text-lg">Eigenaarschap</strong><p class="mt-3 text-sm leading-relaxed text-gray-500">Je ziet direct wat jouw werk verandert voor werknemers en bedrijven.</p></article><article class="rounded-2xl border border-gray-200 bg-white p-5"><strong class="sans text-lg">Samen scherp</strong><p class="mt-3 text-sm leading-relaxed text-gray-500">We delen feedback, testen snel en maken ruimte voor een goed gesprek.</p></article><article class="rounded-2xl border border-gray-200 bg-white p-5"><strong class="sans text-lg">Menselijk tempo</strong><p class="mt-3 text-sm leading-relaxed text-gray-500">Ambitieus bouwen zonder te vergeten dat werk ook gewoon leuk mag zijn.</p></article></div></div></section>
+    <section id="vacatures" class="border-y border-gray-200 bg-white px-4 py-20 sm:px-6 lg:px-8"><div class="mx-auto max-w-7xl"><div class="max-w-2xl"><p class="sans text-xs font-black uppercase tracking-[.2em] text-emerald-700">Open posities</p><h2 class="mt-3 text-4xl font-black tracking-tight">Vind de plek waar jij het verschil maakt.</h2><p class="mt-4 text-lg leading-relaxed text-gray-500">Kies een vacature voor meer informatie. We kijken vooral naar nieuwsgierigheid, zorgvuldigheid en de wil om samen iets goeds neer te zetten.</p></div><div class="mt-10 grid gap-5 lg:grid-cols-3"><article class="job-card rounded-2xl border border-gray-200 bg-gray-50 p-6"><span class="sans text-xs font-black uppercase tracking-wider text-emerald-700">Product</span><h3 class="mt-4 text-2xl font-black">Product designer</h3><p class="sans mt-2 text-sm text-gray-500">Fulltime · Groningen / hybride</p><p class="mt-6 text-sm leading-relaxed text-gray-600">Ontwerp heldere ervaringen voor de mensen die dagelijks met ZekerFlex werken.</p><button type="button" data-job="Product designer" aria-pressed="false" class="mt-7 w-full rounded-xl border border-emerald-700 px-4 py-3 text-sm font-bold text-emerald-700">Ik wil deze vacature</button></article><article class="job-card rounded-2xl border border-gray-200 bg-gray-50 p-6"><span class="sans text-xs font-black uppercase tracking-wider text-emerald-700">Engineering</span><h3 class="mt-4 text-2xl font-black">Frontend developer</h3><p class="sans mt-2 text-sm text-gray-500">Fulltime · Remote / Nederland</p><p class="mt-6 text-sm leading-relaxed text-gray-600">Bouw betrouwbare interfaces die duizenden werkmatches begrijpelijk maken.</p><button type="button" data-job="Frontend developer" aria-pressed="false" class="mt-7 w-full rounded-xl border border-emerald-700 px-4 py-3 text-sm font-bold text-emerald-700">Ik wil deze vacature</button></article><article class="job-card rounded-2xl border border-gray-200 bg-gray-50 p-6"><span class="sans text-xs font-black uppercase tracking-wider text-emerald-700">Community</span><h3 class="mt-4 text-2xl font-black">Partner success lead</h3><p class="sans mt-2 text-sm text-gray-500">Fulltime · Utrecht / hybride</p><p class="mt-6 text-sm leading-relaxed text-gray-600">Help bedrijven, bureaus en werknemers succesvol samenwerken op het platform.</p><button type="button" data-job="Partner success lead" aria-pressed="false" class="mt-7 w-full rounded-xl border border-emerald-700 px-4 py-3 text-sm font-bold text-emerald-700">Ik wil deze vacature</button></article></div></div></section>
+    <section id="solliciteren" class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8"><div class="grid gap-10 lg:grid-cols-[.8fr_1.2fr]"><div><p class="sans text-xs font-black uppercase tracking-[.2em] text-emerald-700">Solliciteren</p><h2 class="mt-3 text-4xl font-black tracking-tight">Vertel ons waar je energie van krijgt.</h2><p class="mt-4 leading-relaxed text-gray-500">Geen passende vacature gevonden? Kies “Open sollicitatie” en laat je gegevens achter. We bewaren je reactie alleen voor contact over werken bij ZekerFlex.</p></div><form id="careerForm" class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8"><div class="grid gap-5 sm:grid-cols-2"><label class="sans text-sm font-bold">Naam<input id="careerName" required class="mt-2 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 font-normal" placeholder="Jouw naam"></label><label class="sans text-sm font-bold">E-mailadres<input id="careerEmail" type="email" required class="mt-2 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 font-normal" placeholder="jij@voorbeeld.nl"></label></div><label class="sans mt-5 block text-sm font-bold">Vacature<select id="careerJob" class="mt-2 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 font-normal"><option>Open sollicitatie</option><option>Product designer</option><option>Frontend developer</option><option>Partner success lead</option></select></label><label class="sans mt-5 block text-sm font-bold">Motivatie<textarea id="careerMessage" required rows="6" class="mt-2 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 font-normal" placeholder="Waar wil je bij ZekerFlex aan bijdragen?"></textarea></label><button class="sans mt-6 rounded-xl bg-slate-950 px-5 py-3 font-bold text-white hover:bg-slate-800" type="submit">Sollicitatie versturen</button><p id="careerStatus" class="sans mt-4 hidden rounded-xl bg-emerald-50 p-3 text-sm font-bold text-emerald-800" role="status"></p></form></div></section>
++  </main>
++  <footer class="sans border-t border-slate-800 bg-slate-950 px-4 py-10 text-gray-300 sm:px-6 lg:px-8"><div class="mx-auto flex max-w-7xl flex-col justify-between gap-4 sm:flex-row"><strong class="text-xl text-white">Zeker<span class="text-emerald-400">Flex</span></strong><a href="index.html" class="text-sm hover:text-white">Terug naar home</a></div></footer>
++  <script>
++    const careerJob = document.getElementById('careerJob');
++    document.querySelectorAll('[data-job]').forEach((button) => button.addEventListener('click', () => { careerJob.value = button.dataset.job; document.querySelectorAll('[data-job]').forEach((item) => item.setAttribute('aria-pressed', String(item === button))); document.getElementById('solliciteren').scrollIntoView({ behavior: 'smooth', block: 'start' }); }));
++    document.getElementById('careerForm').addEventListener('submit', (event) => { event.preventDefault(); const application = { name: document.getElementById('careerName').value.trim(), email: document.getElementById('careerEmail').value.trim(), job: careerJob.value, message: document.getElementById('careerMessage').value.trim(), created_at: new Date().toISOString() }; const applications = JSON.parse(localStorage.getItem('zf_career_applications') || '[]'); applications.push(application); localStorage.setItem('zf_career_applications', JSON.stringify(applications)); const status = document.getElementById('careerStatus'); status.textContent = 'Bedankt. Je sollicitatie is ontvangen.'; status.classList.remove('hidden'); event.target.reset(); careerJob.value = application.job; });
++  </script>
++</body>
++</html>

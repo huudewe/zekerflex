@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: zekerflex
+    runtime: node
+    rootDir: zekerflex-app
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
